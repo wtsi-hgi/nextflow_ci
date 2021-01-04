@@ -26,7 +26,7 @@ jobs:
         git pull
         git submodule sync
         git submodule update --init --recursive --remote
-        sed -i s"/branch = template/branch = $BRANCH/"g .gitmodules
+        sed -i s"/branch = template$/branch = $BRANCH/"g .gitmodules
         git add .gitmodules && git commit --allow-empty -m "fixed .gitmodules" && git push -u origin
         git submodule sync
         git submodule update --init --recursive --remote
