@@ -10,7 +10,7 @@ include { test_lustre_access } from '../modules/test_lustre_access.nf'
 
 workflow {
 
-    if (params.test_lustre_access) {
+    if (params.test_lustre_access.run_test) {
 	test_lustre_access(Channel.from(params.test_lustre_access.lustre_dir))
 	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
     }
