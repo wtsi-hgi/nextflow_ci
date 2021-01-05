@@ -1,5 +1,5 @@
 process test_lustre_access {
-    tag "${lustre_location}"
+    tag "in ${lustre_location}"
     publishDir "${params.outdir}/test_lustre_access/", mode: 'copy', pattern: "test.txt", overwrite: true
 
     input: 
