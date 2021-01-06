@@ -10,6 +10,8 @@ process test_lustre_access {
 
     script:
     """
+umask 2 # make files group_writable
+
 ls -ltra ${lustre_location} > test.txt
     """
 }
