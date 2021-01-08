@@ -18,7 +18,9 @@ process imeta_study {
 
     script:
     """
-    bash $workflow.projectDir/../bin/imeta_study.sh ${study_id}
+    # replaced original script: bash $workflow.projectDir/../bin/imeta_study.sh ${study_id}
+    # with cp hack to get unmerged + merged crams:
+    cp $workflow.projectDir/../../inputs/5591.samples.tsv samples.tsv
     awk '!a[\$1]++' samples.tsv > samples_noduplicates.tsv 
 
     # Save work dir so that it can be removed onComplete of workflow, 
