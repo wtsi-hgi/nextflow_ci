@@ -30,14 +30,19 @@ workflow {
 		tuple(experiment,
 		      path10x.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
 					   params.cellsnp.cellranger_input.replace_path_to))}
+		.map { a,b -> tuple(a,file("${b}/../*.bam"),file("${b}/../*.bam.bai"),
+				    file("${b}/barcodes.tsv.gz")) }
 		.set{ch_experiment_path10x_tocellsnp}
 	} else {
 	    ch_experiment_path10x
+		.map { a,b -> tuple(a,file("${b}/../*.bam"),file("${b}/../*.bam.bai"),
+				    file("${b}/barcodes.tsv.gz")) }
 		.set{ch_experiment_path10x_tocellsnp}
 	    
 	}
-
-	cellsnp(, Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
+	ch_experiment_path10x_tocellsnp.view()
+	cellsnp(ch_experiment_path10x_tocellsnp,
+		Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
 	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
     }
     
