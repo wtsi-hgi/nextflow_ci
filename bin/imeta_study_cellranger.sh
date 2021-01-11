@@ -15,7 +15,7 @@ ils /seq/illumina/cellranger/ | grep ${sample} >> ${sample}.cellranger.found_in_
 if [ -s ${sample}.cellranger.found_in_irods.txt ] 
 then 
         echo cellranger data found ${sample}
-        cat ${sample}.cellranger.found_in_irods.txt  | awk '{print $2}' >> cellranger.object.txt
+        cat ${sample}.cellranger.found_in_irods.txt  | awk '{print $2}' | grep GRCh38 >> cellranger.object.txt
 else
         echo cellranger data not found
 fi
