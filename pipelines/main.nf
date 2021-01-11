@@ -7,14 +7,41 @@ nextflow.enable.dsl=2
 
 // import modules that depend on input mode:
 include { test_lustre_access } from '../modules/test_lustre_access.nf'
+include { cellsnp } from '../modules/cellsnp.nf'
+include { vireo } from '../modules/vireo.nf'
 
 workflow {
-
-    Channel.from(params.test_lustre_access.lustre_dir).view()
 
     if (params.test_lustre_access.run_test) {
 	test_lustre_access(Channel.from(params.test_lustre_access.lustre_dir))
 	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
+    }
+    
+    if (params.cellsnp.run) {
+
+	Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
+            .splitCsv(header: true, sep: '\t')
+	    .map{row->tuple(row.experiment_id, row.data_path_10x_format)}
+	    .set{ch_experiment_path10x}
+
+	if (params.cellsnp.cellranger_input.replace_lustre_path) {
+	    ch_experiment_path10x
+		.map{experiment, path10x ->
+		tuple(experiment,
+		      path10x.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+					   params.cellsnp.cellranger_input.replace_path_to))}
+		.set{ch_experiment_path10x_tocellsnp}
+	} else {
+	    ch_experiment_path10x
+		.set{ch_experiment_path10x_tocellsnp}
+	    
+	}
+
+	cellsnp(, Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
+	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
+    }
+    
+    if (params.vireo.run) {
     }
 }
 
@@ -47,3 +74,6 @@ workflow.onComplete {
 	log.info b.toString() }
 }
 
+
+	//        .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+	//        .unique()
