@@ -45,7 +45,7 @@ workflow {
 	ch_experiment_path10x_tocellsnp.view()
 	cellsnp(ch_experiment_path10x_tocellsnp,
 		Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
-	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
+	//work_dir_to_remove = imeta_study.out.work_dir_to_remove
     }
     
     if (params.vireo.run) {
