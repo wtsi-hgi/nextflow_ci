@@ -1,5 +1,5 @@
 process cellsnp {
-    tag "in ${lustre_location}"
+    tag "${samplename}"
     publishDir "${params.outdir}/cellsnp/", mode: 'copy', pattern: "cellsnp_${samplename}", overwrite: true
 
     input: 
