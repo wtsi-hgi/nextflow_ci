@@ -55,6 +55,7 @@ workflow {
 	    .map{row->tuple(row.experiment_id, row.n_pooled)}
 	    .set{ch_experiment_npooled}
 
+	ch_experiment_npooled.view()
 	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
     }
 }
