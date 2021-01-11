@@ -12,6 +12,7 @@ ils /seq/illumina/${run_id_2digits}/${run_id}/cellranger/ | grep ${sample} >> ${
 ils /seq/illumina/runs/${run_id_2digits}/${run_id}/cellranger/ | grep ${sample} >> ${sample}.cellranger.found_in_irods.txt || true
 ils /seq/illumina/cellranger/ | grep ${sample} >> ${sample}.cellranger.found_in_irods.txt || true
 
+
 if [ -s ${sample}.cellranger.found_in_irods.txt ] 
 then 
         echo cellranger data found ${sample}
