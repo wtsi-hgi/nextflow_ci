@@ -49,6 +49,13 @@ workflow {
     }
     
     if (params.vireo.run) {
+	
+	Channel.fromPath(params.vireo.n_pooled_tsv)
+            .splitCsv(header: true, sep: '\t')
+	    .map{row->tuple(row.experiment_id, row.n_pooled)}
+	    .set{ch_experiment_npooled}
+
+	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
     }
 }
 
