@@ -32,16 +32,18 @@ workflow {
 					   params.cellsnp.cellranger_input.replace_path_to))}
 		.map { a,b -> tuple(a,file("${b}/../possorted_genome_bam.bam"),
 				    file("${b}/../possorted_genome_bam.bam.bai"),
-				    file("${b}/barcodes.tsv.gz")) }
+				    file("${b}/hg19/barcodes.tsv")) }
+	      // file("${b}/barcodes.tsv.gz")) }  
 		.set{ch_experiment_path10x_tocellsnp}
 	} else {
 	    ch_experiment_path10x
 		.map { a,b -> tuple(a,file("${b}/../possorted_genome_bam.bam"),
 				    file("${b}/../possorted_genome_bam.bam.bai"),
-				    file("${b}/barcodes.tsv.gz")) }
+				    file("${b}/hg19/barcodes.tsv")) }
+	      // file("${b}/barcodes.tsv.gz")) }  
 		.set{ch_experiment_path10x_tocellsnp}
-	    
 	}
+
 	ch_experiment_path10x_tocellsnp.view()
 	cellsnp(ch_experiment_path10x_tocellsnp,
 		Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
