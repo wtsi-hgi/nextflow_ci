@@ -59,7 +59,7 @@ workflow run_from_irods_tsv {
     iget_study_cellranger(imeta_study_cellranger.out.study_id_sample_cellranger_object
 			  .map{study_id, sample, run_id, cellranger_irods_object, workdir ->
 	    tuple(study_id, sample, cellranger_irods_object)}
-			  .filter { it[2] != "cellranger_irods_not_found" })
+			  .filter { it[2] != "cellranger_irods_not_found" }.take(10))
 
     // prepare Lelands' pipeline inputs
     // --file_paths_10x    Tab-delimited file containing experiment_id and
