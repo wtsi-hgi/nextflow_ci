@@ -14,8 +14,15 @@ process cellsnp {
     """
 umask 2 # make files group_writable
 
-zcat ${barcodes_tsv_gz} > barcodes.txt
-cellSNP -s ${bam_file} -b barcodes.txt -O cellsnp_${samplename} -R ${region_vcf} -p 20 --minMAF 0.1 --minCOUNT 60
+if [[ ${barcodes_tsv_gz} =~ \\.gz\$ ]]; then
+  echo \"${barcodes_tsv_gz} is gzipped\"
+  zcat ${barcodes_tsv_gz} > bar_codes.txt
+else
+  echo \"${barcodes_tsv_gz} is not gzipped\"
+  ln -s ${barcodes_tsv_gz} bar_codes.txt
+fi
+
+cellSNP -s ${bam_file} -b bar_codes.txt -O cellsnp_${samplename} -R ${region_vcf} -p 20 --minMAF 0.1 --minCOUNT 60
     """
 }
 // https://github.com/single-cell-genetics/cellSNP
