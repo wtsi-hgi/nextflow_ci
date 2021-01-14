@@ -9,6 +9,7 @@ nextflow.enable.dsl=2
 include { test_lustre_access } from '../modules/test_lustre_access.nf'
 include { cellsnp } from '../modules/cellsnp.nf'
 include { vireo } from '../modules/vireo.nf'
+include { split_donor_h5ad } from '../modules/split_donor_h5ad.nf'
 
 workflow {
 
@@ -55,6 +56,11 @@ workflow {
 
 	ch_experiment_npooled.view()
 	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
+    }
+    
+    if (params.split_h5ad_per_donor.run) {
+	
+	split_donor_h5ad()
     }
 }
 
