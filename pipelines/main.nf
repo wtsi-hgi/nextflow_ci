@@ -26,8 +26,7 @@ workflow {
 
 	if (params.cellsnp.cellranger_input.replace_lustre_path) {
 	    ch_experiment_path10x
-		.map{experiment, path10x, pathbam, pathbarcodes ->
-		experiment, tuple(
+		.map{experiment, path10x, pathbam, pathbarcodes -> experiment, tuple(
 		      path10x.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
 					   params.cellsnp.cellranger_input.replace_path_to),
 		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
@@ -35,9 +34,7 @@ workflow {
 		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
 					   params.cellsnp.cellranger_input.replace_path_to).replaceFirst(/$/, ".bai"),
 		      pathbarcodes.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-					   params.cellsnp.cellranger_input.replace_path_to)
-		)
-	    }
+					   params.cellsnp.cellranger_input.replace_path_to))}
 		.set{ch_experiment_path10x_tocellsnp}
 	} else {
 	    ch_experiment_path10x
