@@ -21,14 +21,12 @@ workflow {
 
 	Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
             .splitCsv(header: true, sep: '\t')
-	    .map{row->tuple(row.experiment_id, row.data_path_10x_format, row.data_path_bam_file ,row.data_path_barcodes)}
+	    .map{row->tuple(row.experiment_id, row.data_path_bam_file ,row.data_path_barcodes)}
 	    .set{ch_experiment_path10x}
 
 	if (params.cellsnp.cellranger_input.replace_lustre_path) {
 	    ch_experiment_path10x
-		.map{experiment, path10x, pathbam, pathbarcodes -> tuple(experiment, 
-		      path10x.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-					   params.cellsnp.cellranger_input.replace_path_to),
+		.map{experiment, pathbam, pathbarcodes -> tuple(experiment, 
 		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
 					   params.cellsnp.cellranger_input.replace_path_to),
 		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
@@ -38,7 +36,7 @@ workflow {
 		.set{ch_experiment_path10x_tocellsnp}
 	} else {
 	    ch_experiment_path10x
-		.map { a,b,c,d -> tuple(a, b, file(c), file("${c}.bai"), file(d))}
+		.map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
 		.set {ch_experiment_path10x_tocellsnp}
 	}
 
