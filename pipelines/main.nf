@@ -21,27 +21,28 @@ workflow {
 
 	Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
             .splitCsv(header: true, sep: '\t')
-	    .map{row->tuple(row.experiment_id, row.data_path_10x_format)}
+	    .map{row->tuple(row.experiment_id, row.data_path_10x_format, row.data_path_bam_file ,row.data_path_barcodes)}
 	    .set{ch_experiment_path10x}
 
 	if (params.cellsnp.cellranger_input.replace_lustre_path) {
 	    ch_experiment_path10x
-		.map{experiment, path10x ->
-		tuple(experiment,
+		.map{experiment, path10x, pathbam, pathbarcodes ->
+		experiment, tuple(
 		      path10x.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-					   params.cellsnp.cellranger_input.replace_path_to))}
-		.map { a,b -> tuple(a,file("${b}/../possorted_genome_bam.bam"),
-				    file("${b}/../possorted_genome_bam.bam.bai"),
-				    file("${b}/../filtered_gene_bc_matrices/hg19/barcodes.tsv")) }
-	      // file("${b}/barcodes.tsv.gz")) }  
+					   params.cellsnp.cellranger_input.replace_path_to),
+		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+					   params.cellsnp.cellranger_input.replace_path_to),
+		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+					   params.cellsnp.cellranger_input.replace_path_to).replaceFirst(/$/, ".bai"),
+		      pathbarcodes.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+					   params.cellsnp.cellranger_input.replace_path_to)
+		)
+	    }
 		.set{ch_experiment_path10x_tocellsnp}
 	} else {
 	    ch_experiment_path10x
-		.map { a,b -> tuple(a,file("${b}/../possorted_genome_bam.bam"),
-				    file("${b}/../possorted_genome_bam.bam.bai"),
-				    file("${b}/../filtered_gene_bc_matrices/hg19/barcodes.tsv")) }
-	      // file("${b}/barcodes.tsv.gz")) }  
-		.set{ch_experiment_path10x_tocellsnp}
+		.map { a,b,c,d -> a, tuple(b,file(c),file("${c}.bai"),file(d))}
+		.set {ch_experiment_path10x_tocellsnp}
 	}
 
 	ch_experiment_path10x_tocellsnp.view()
