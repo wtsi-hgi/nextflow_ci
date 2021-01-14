@@ -13,17 +13,6 @@ process split_donor_h5ad {
 
     script:
     """
-    bash $workflow.projectDir/../bin/imeta_study_cellranger.sh ${sample} ${run_id}
-    if [ -f cellranger.object.txt ] 
-    then 
-        echo file cellranger.object.txt found
-        CELLRANGER_IRODS_OBJECT=\$(cat cellranger.object.txt)
-        WORK_DIR=dont_remove
-        rm cellranger.object.txt
-    else
-        echo not found file cellranger.object.txt
-        CELLRANGER_IRODS_OBJECT=cellranger_irods_not_found
-        WORK_DIR=\$PWD
-    fi
+    python $workflow.projectDir/../bin/split_h5ad_per_donor.py ${sample} ${run_id}
     """
 }
