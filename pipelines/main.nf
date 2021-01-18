@@ -63,7 +63,7 @@ workflow {
     
     plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
 
-    split_donor_h5ad(vireo.out.sample_donor_ids.combine(ch_experiment_data_path_filt_h5))
+    split_donor_h5ad(vireo.out.sample_donor_ids.combine(ch_experiment_data_path_filt_h5, by: 0))
 		      
 }
 
