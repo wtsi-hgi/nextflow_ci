@@ -1,6 +1,6 @@
 process test_lustre_access {
     tag "check ${lustre_location}"
-    publishDir "${params.outdir}/test_lustre_access/", mode: 'copy', pattern: "test.txt", overwrite: true
+    publishDir "${params.outdir}/test_lustre_access/", mode: "${params.copy_mode}", pattern: "test.txt", overwrite: true
 
     when: 
     params.test_lustre_access.run_test

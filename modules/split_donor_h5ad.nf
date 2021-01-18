@@ -1,7 +1,7 @@
 process split_donor_h5ad {
     tag "${sample}"
 
-    publishDir "${params.outdir}/split_donor_h5ad/${sample}", mode: 'copy', pattern: "outputs/*.pdf", overwrite: true
+    publishDir "${params.outdir}/split_donor_h5ad/${sample}", mode: "${params.copy_mode}", pattern: "outputs/*.pdf", overwrite: true
     
     when: 
     params.split_h5ad_per_donor.run

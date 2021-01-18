@@ -1,6 +1,6 @@
 process cellsnp {
     tag "${samplename}"
-    publishDir "${params.outdir}/cellsnp/", mode: 'copy', pattern: "cellsnp_${samplename}", overwrite: true
+    publishDir "${params.outdir}/cellsnp/", mode: "${params.copy_mode}", pattern: "cellsnp_${samplename}", overwrite: true
     
     when: 
     params.cellsnp.run
@@ -25,7 +25,13 @@ else
   ln -s ${barcodes_tsv_gz} bar_codes.txt
 fi
 
-cellSNP -s ${bam_file} -b bar_codes.txt -O cellsnp_${samplename} -R ${region_vcf} -p 20 --minMAF 0.1 --minCOUNT 60
+cellSNP -s ${bam_file} \\
+  -b bar_codes.txt \\
+  -O cellsnp_${samplename} \\
+  -R ${region_vcf} \\
+  -p ${params.cellsnp.p} \\
+  --minMAF ${params.cellsnp.min_maf} \\
+  --minCOUNT ${params.cellsnp.min_count}
     """
 }
 // https://github.com/single-cell-genetics/cellSNP
