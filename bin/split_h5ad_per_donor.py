@@ -77,6 +77,82 @@ def split_h5ad_per_donor(vireo_donor_ids_tsv, filtered_matrix_h5, samplename,
     # Set the default dpi
     plt9.options.dpi = plotnine_dpi   
 
+    # print modules version to output file.
+    if print_modules_version:
+        with open(output_dir + '/module_versions.txt', 'w') as f:
+            for name, module in sorted(sys.modules.items()): 
+                if hasattr(module, '__version__'): 
+                    f.write(str(name) + '=' + str(module.__version__) + '\n') 
+
+
+    # read-in cellranger 10x data produced by 'cellranger count':
+    adata = sc.read_10x_h5(filtered_matrix_h5)
+    adata.var['gene_symbols'] = adata.var.index
+    adata.var.index = adata.var['gene_ids'].values
+    del adata.var['gene_ids']
+
+    # also read-in the cell deconvolution annotation produced by Vireo:
+    vireo_anno_deconv_cells = pd.read_csv(vireo_donor_ids_tsv, sep='\t',
+                                          index_col='cell')
+
+    # calculate number of cells per deconvoluted donor:
+    cells_per_donor_count = vireo_anno_deconv_cells[['donor_id']].value_counts().to_frame('n_cells')
+    cells_per_donor_count.reset_index(level=cells_per_donor_count.index.names, inplace=True)
+
+    # check that `adata` and `vireo_anno_deconv_cells` indexes DO match, as expected:
+    for cell_in_vireo_index in vireo_anno_deconv_cells.index:
+        if cell_in_vireo_index not in adata.obs_names:
+            print('error: cell index ' + cell_in_vireo_index + ' is in vireo_anno_deconv_cells but not in adata')
+
+    # add Vireo annotation to adata
+    adata.obs['convoluted_samplename'] = samplename
+    for new_cell_annotation in ['donor_id','prob_max','prob_doublet','n_vars','best_singlet','best_doublet']:
+        if new_cell_annotation in vireo_anno_deconv_cells.columns:
+            print('adding vireo annotation ' + new_cell_annotation + ' to AnnData object.')
+            adata.obs[new_cell_annotation] = vireo_anno_deconv_cells[new_cell_annotation]
+        else:
+            print('warning: column ' + new_cell_annotation + ' is not in input Vireo annotation tsv.')        
+
+    # plot n cells per deconvoluted Vireo donor:
+    if plot_n_cells_per_vireo_donor:
+        gplt = plt9.ggplot(cells_per_donor_count, plt9.aes(
+            x='donor_id',
+            y='n_cells',
+            fill='donor_id'
+        ))
+        gplt = gplt + plt9.theme_bw() + plt9.theme(legend_position='none', 
+                                                   axis_text_x=plt9.element_text(colour="black", angle=45),
+                                                   axis_text_y=plt9.element_text(colour="black"))
+        gplt = gplt + plt9.geom_bar(stat='identity', position='dodge')
+        gplt = gplt + plt9.geom_text(plt9.aes(label='n_cells'))
+        gplt = gplt + plt9.labels.ggtitle('CellSNP/Vireo deconvolution\nnumber of cells per deconvoluted donor\nsample: ' + samplename)
+        gplt = gplt + plt9.labels.xlab('deconvoluted donor')
+        gplt = gplt + plt9.labels.ylab('Number of cells assigned by Vireo')
+    
+        # save plot(s) as pdf:
+        plots = [gplt]
+        save_as_pdf_pages(plots, filename=output_dir + '/Vireo_plots.pdf')
+
+    # write AnnData with Vireo cell annotation in .obs
+    output_file = output_dir + '/vireo_annot.' + samplename
+    print('Write h5ad AnnData with Vireo cell annotation in .obs to ' + output_file)
+    adata.write('{}.h5ad'.format(output_file), compression='gzip', compression_opts= anndata_compression_level)
+    
+    if write_donor_level_filtered_cells_h5:
+    
+        if not os.path.exists(output_dir + '/donor_level_anndata'):
+            print('creating directory ' + output_dir + '/donor_level_anndata')
+            os.makedirs('donor_level_anndata')
+        
+        adata_donors = []
+        for donor_id in adata.obs['donor_id'].unique():
+            print('filtering cells of AnnData to donor ' + donor_id)
+            adata_donor = adata[adata.obs['donor_id'] == donor_id, :]
+            adata_donors.append((donor_id, adata_donor))  
+            output_file = output_dir + '/donor_level_anndata/' + donor_id + '.' + samplename
+            print('Write h5ad donor AnnData to ' + output_file)
+            adata_donor.write('{}.h5ad'.format(output_file), compression='gzip', compression_opts= anndata_compression_level)
+
 if __name__ == '__main__':
     # set logging level and handler:
     logging.basicConfig(level=logging.INFO,
