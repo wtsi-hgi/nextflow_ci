@@ -1,6 +1,9 @@
 process cellsnp {
     tag "${samplename}"
     publishDir "${params.outdir}/cellsnp/", mode: 'copy', pattern: "cellsnp_${samplename}", overwrite: true
+    
+    when: 
+    params.cellsnp.run
 
     input: 
     tuple val(samplename), path(bam_file), path(bai_file), path(barcodes_tsv_gz)

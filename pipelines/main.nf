@@ -10,59 +10,64 @@ include { test_lustre_access } from '../modules/test_lustre_access.nf'
 include { cellsnp } from '../modules/cellsnp.nf'
 include { vireo } from '../modules/vireo.nf'
 include { split_donor_h5ad } from '../modules/split_donor_h5ad.nf'
+include { plot_donor_ncells } from '../modules/plot_donor_ncells.nf'
 
 workflow {
+    
+    test_lustre_access(Channel.from(params.test_lustre_access.lustre_dir))
 
-    if (params.test_lustre_access.run_test) {
-	test_lustre_access(Channel.from(params.test_lustre_access.lustre_dir))
-	// work_dir_to_remove = imeta_study.out.work_dir_to_remove
+    Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
+        .splitCsv(header: true, sep: '\t')
+	.map{row->tuple(row.experiment_id, row.data_path_filt_h5)}
+	.set{ch_experiment_data_path_filt_h5} // this channel is is used for task 'split_donor_h5ad'
+    
+    Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
+        .splitCsv(header: true, sep: '\t')
+	.map{row->tuple(row.experiment_id, row.data_path_bam_file ,row.data_path_barcodes)}
+	.set{ch_experiment_path10x}
+    
+    if (params.cellsnp.cellranger_input.replace_lustre_path) {
+	ch_experiment_path10x
+	    .map{experiment, pathbam, pathbarcodes -> tuple(experiment, 
+							    pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+										 params.cellsnp.cellranger_input.replace_path_to),
+							    pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+										 params.cellsnp.cellranger_input.replace_path_to).replaceFirst(/$/, ".bai"),
+							    pathbarcodes.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
+										      params.cellsnp.cellranger_input.replace_path_to))}
+	    .set{ch_experiment_path10x_tocellsnp}
+    } else {
+	ch_experiment_path10x
+	    .map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
+	    .set {ch_experiment_path10x_tocellsnp}
     }
     
-    if (params.cellsnp.run) {
-
-	Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
-            .splitCsv(header: true, sep: '\t')
-	    .map{row->tuple(row.experiment_id, row.data_path_bam_file ,row.data_path_barcodes)}
-	    .set{ch_experiment_path10x}
-
-	if (params.cellsnp.cellranger_input.replace_lustre_path) {
-	    ch_experiment_path10x
-		.map{experiment, pathbam, pathbarcodes -> tuple(experiment, 
-		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-					   params.cellsnp.cellranger_input.replace_path_to),
-		      pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-					   params.cellsnp.cellranger_input.replace_path_to).replaceFirst(/$/, ".bai"),
-		      pathbarcodes.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-						params.cellsnp.cellranger_input.replace_path_to))}
-		.set{ch_experiment_path10x_tocellsnp}
-	} else {
-	    ch_experiment_path10x
-		.map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
-		.set {ch_experiment_path10x_tocellsnp}
-	}
-
-	ch_experiment_path10x_tocellsnp.view()
-	cellsnp(ch_experiment_path10x_tocellsnp,
-		Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
-	//work_dir_to_remove = imeta_study.out.work_dir_to_remove
-    }
+    ch_experiment_path10x_tocellsnp.view()
+    cellsnp(ch_experiment_path10x_tocellsnp,
+	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
     
-    if (params.vireo.run) {
-	
-	Channel.fromPath(params.vireo.n_pooled_tsv)
-            .splitCsv(header: true, sep: '\t')
-	    .map{row->tuple(row.experiment_id, row.n_pooled)}
-	    .set{ch_experiment_npooled}
-
-	ch_experiment_npooled.view()
-	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
-    }
+    Channel.fromPath(params.vireo.n_pooled_tsv)
+        .splitCsv(header: true, sep: '\t')
+	.map{row->tuple(row.experiment_id, row.n_pooled)}
+	.set{ch_experiment_npooled}
     
-    if (params.split_h5ad_per_donor.run) {
-	
-	split_donor_h5ad()
-    }
+    ch_experiment_npooled.view()
+    vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
+    
+    vireo.out.sample_summary_tsv
+	.collectFile(name: "vireo_donor_n_cells.tsv", 
+		     newLine: true, sort: true,
+		     seed: "experiment_id\tdonor\tn_cells",
+		     storeDir:params.outdir)
+	.set{ch_vireo_donor_n_cells_tsv}//donor column: donor0, .., donorx, doublet, unassigned
+    
+    plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
+
+    split_donor_h5adi(vireo.out.sample_donor_ids.combine(ch_experiment_data_path_filt_h5))
+		      
 }
+
+
 
 workflow.onError {
     log.info "Pipeline execution stopped with the following message: ${workflow.errorMessage}" }
@@ -92,7 +97,3 @@ workflow.onComplete {
 	log.info proc.text
 	log.info b.toString() }
 }
-
-
-	//        .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
-	//        .unique()
