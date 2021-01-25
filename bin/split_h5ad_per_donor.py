@@ -77,6 +77,10 @@ def split_h5ad_per_donor(vireo_donor_ids_tsv, filtered_matrix_h5, samplename,
     # Set the default dpi
     plt9.options.dpi = plotnine_dpi   
 
+    if not os.path.exists(output_dir):
+        print('creating directory ' + output_dir)
+        os.makedirs(output_dir)
+
     # print modules version to output file.
     if print_modules_version:
         with open(output_dir + '/module_versions.txt', 'w') as f:
@@ -142,7 +146,7 @@ def split_h5ad_per_donor(vireo_donor_ids_tsv, filtered_matrix_h5, samplename,
     
         if not os.path.exists(output_dir + '/donor_level_anndata'):
             print('creating directory ' + output_dir + '/donor_level_anndata')
-            os.makedirs('donor_level_anndata')
+            os.makedirs(output_dir + '/donor_level_anndata')
         
         adata_donors = []
         for donor_id in adata.obs['donor_id'].unique():

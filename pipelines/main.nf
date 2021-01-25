@@ -5,69 +5,30 @@ nextflow.enable.dsl=2
 // Meaning that if you wish to run pipeline with different parameters,
 // you have to edit+commit+push that "inputs.nf" file, then rerun the pipeline.
 
-// import modules that depend on input mode:
-include { test_lustre_access } from '../modules/test_lustre_access.nf'
-include { cellsnp } from '../modules/cellsnp.nf'
-include { vireo } from '../modules/vireo.nf'
-include { split_donor_h5ad } from '../modules/split_donor_h5ad.nf'
-include { plot_donor_ncells } from '../modules/plot_donor_ncells.nf'
+// module to prepare input channels depending on which params.cellsnp_input_table_mode was set:
+include { prepare_inputs } from './prepare_inputs.nf'  
+// main deconvolution pipeline once inputs channels are prepared:
+include { main_deconvolution } from './main_deconvolution.nf'  
 
 workflow {
-    
-    test_lustre_access(Channel.from(params.test_lustre_access.lustre_dir))
 
-    Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
-        .splitCsv(header: true, sep: '\t')
-	.map{row->tuple(row.experiment_id, row.data_path_filt_h5)}
-	.set{ch_experiment_data_path_filt_h5} // this channel is is used for task 'split_donor_h5ad'
-    
-    Channel.fromPath(params.cellsnp.cellranger_input.lustre_filepath10x_tsv)
-        .splitCsv(header: true, sep: '\t')
-	.map{row->tuple(row.experiment_id, row.data_path_bam_file ,row.data_path_barcodes)}
-	.set{ch_experiment_path10x}
-    
-    if (params.cellsnp.cellranger_input.replace_lustre_path) {
-	ch_experiment_path10x
-	    .map{experiment, pathbam, pathbarcodes -> tuple(experiment, 
-							    pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-										 params.cellsnp.cellranger_input.replace_path_to),
-							    pathbam.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-										 params.cellsnp.cellranger_input.replace_path_to).replaceFirst(/$/, ".bai"),
-							    pathbarcodes.replaceFirst(/${params.cellsnp.cellranger_input.replace_path_from}/,
-										      params.cellsnp.cellranger_input.replace_path_to))}
-	    .set{ch_experiment_path10x_tocellsnp}
+    log.info "inputs parameters are: $params"
+
+    // prepare input channels, depending on which input mode was chosen:
+    if (! file(params.input_data_table).isEmpty()) {
+	prepare_inputs(Channel.fromPath(params.input_data_table))
     } else {
-	ch_experiment_path10x
-	    .map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
-	    .set {ch_experiment_path10x_tocellsnp}
+	log.info "ERROR: params.input_data_table should be valid path to a (non-empty) input table file."
+	log.info "Please fix input param 'input_data_table' (currently set to $params.input_data_table)"
+	exit 1
     }
     
-    ch_experiment_path10x_tocellsnp.view()
-    cellsnp(ch_experiment_path10x_tocellsnp,
-	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
+    // run main deconvolution pipeline on prepared input channels:
+    main_deconvolution(prepare_inputs.out.ch_experiment_bam_bai_barcodes,
+		       prepare_inputs.out.ch_experiment_npooled,
+		       prepare_inputs.out.ch_experiment_filth5)
     
-    Channel.fromPath(params.vireo.n_pooled_tsv)
-        .splitCsv(header: true, sep: '\t')
-	.map{row->tuple(row.experiment_id, row.n_pooled)}
-	.set{ch_experiment_npooled}
-    
-    ch_experiment_npooled.view()
-    vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
-    
-    vireo.out.sample_summary_tsv
-	.collectFile(name: "vireo_donor_n_cells.tsv", 
-		     newLine: true, sort: true,
-		     seed: "experiment_id\tdonor\tn_cells",
-		     storeDir:params.outdir)
-	.set{ch_vireo_donor_n_cells_tsv}//donor column: donor0, .., donorx, doublet, unassigned
-    
-    plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
-
-    split_donor_h5ad(vireo.out.sample_donor_ids.combine(ch_experiment_data_path_filt_h5, by: 0))
-		      
 }
-
-
 
 workflow.onError {
     log.info "Pipeline execution stopped with the following message: ${workflow.errorMessage}" }
@@ -77,14 +38,14 @@ workflow.onComplete {
     log.info "Command line: $workflow.commandLine"
     log.info "Execution status: ${ workflow.success ? 'OK' : 'failed' }"
     
-    if (params.on_complete_uncache_irods_search) {
-	log.info "You have selected \"on_complete_uncache_irods_search = true\"; will therefore attempt to remove Irods work dirs to forcefully uncache them even if successful."
-	if (! file("${params.outdir}/irods_work_dirs_to_remove.csv").isEmpty()) {
-	    log.info "file ${params.outdir}/irods_work_dirs_to_remove.csv exists and not empty ..."
-	    file("${params.outdir}/irods_work_dirs_to_remove.csv")
+    if (params.on_complete_remove_workdirs) {
+	log.info "You have selected \"on_complete_remove_workdirs = true\"; will therefore attempt to remove work dirs of selected tasks (even if completed successfully.)"
+	if (! file("${params.outdir}/work_dirs_to_remove.csv").isEmpty()) {
+	    log.info "file ${params.outdir}/work_dirs_to_remove.csv exists and not empty ..."
+	    file("${params.outdir}/work_dirs_to_remove.csv")
 		.eachLine {  work_dir ->
 		if (file(work_dir).isDirectory()) {
-		    log.info "removing work dir $work_dir ..."
+		    log.info "removing in work dir $work_dir ..."
 		    file(work_dir).deleteDir()   
 		} } } }
     

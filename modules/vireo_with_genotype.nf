@@ -1,12 +1,12 @@
-process vireo {
+process vireo_with_genotype {
     tag "${samplename}"
-    publishDir "${params.outdir}/vireo/${samplename}/", mode: "${params.copy_mode}", overwrite: true
+    publishDir "${params.outdir}/vireo_gt/${samplename}/", mode: "${params.copy_mode}", overwrite: true
     
     when: 
-    params.vireo.run
+    params.vireo_with_genotype.run
     
     input:
-    tuple val(samplename), path(cell_data), val(n_pooled)
+    tuple val(samplename), path(cell_data), path(donors_gt_vcf)
     
     output:
     tuple val(samplename), path("vireo_${samplename}/*"), emit: output_dir
@@ -17,7 +17,7 @@ process vireo {
     """
 umask 2 # make files group_writable
 
-vireo -c $cell_data -N $n_pooled -o vireo_${samplename}
+vireo -c $cell_data -o vireo_${samplename} -d ${donors_gt_vcf} -t GT
 
 # add samplename to summary.tsv,
 # to then have Nextflow concat summary.tsv of all samples into a single file:

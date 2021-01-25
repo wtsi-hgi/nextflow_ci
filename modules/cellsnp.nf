@@ -11,7 +11,6 @@ process cellsnp {
     
     output:
     tuple val(samplename), file("cellsnp_${samplename}"), emit: cellsnp_output_dir
-    tuple val(samplename), file("cellsnp_${samplename}/cellSNP.cells.vcf.gz"), emit: samplename_cellsvcfgz
 
     script:
     """
@@ -25,13 +24,13 @@ else
   ln -s ${barcodes_tsv_gz} bar_codes.txt
 fi
 
-cellSNP -s ${bam_file} \\
+cellsnp-lite -s ${bam_file} \\
   -b bar_codes.txt \\
   -O cellsnp_${samplename} \\
   -R ${region_vcf} \\
   -p ${params.cellsnp.p} \\
   --minMAF ${params.cellsnp.min_maf} \\
-  --minCOUNT ${params.cellsnp.min_count}
+  --minCOUNT ${params.cellsnp.min_count} --gzip
     """
 }
 // https://github.com/single-cell-genetics/cellSNP
