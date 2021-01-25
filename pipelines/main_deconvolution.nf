@@ -28,6 +28,7 @@ workflow  main_deconvolution {
     // Vireo with genotype input:
     if (params.vireo.run_with_genotype_input) {
 
+	// for each experiment_id to deconvolute, subset donors vcf to its donors and subset genomic regions. 
 	subset_genoytpe(
 	ch_experiment_donorsvcf_donorslist
 	    .map { experiment, donorsvcf, donorslist -> tuple(experiment, 
@@ -37,18 +38,23 @@ workflow  main_deconvolution {
 
 	vireo_with_genotype(cellsnp.out.cellsnp_output_dir
 			    .combine(subset_genoytpe.out.samplename_subsetvcf, by: 0))
+
+	vireo_out_sample_summary_tsv = vireo_with_genotype.out.sample_summary_tsv
+	vireo_out_sample_donor_ids = vireo_with_genotype.out.sample_donor_ids
     }
     // Vireo without genotype input:
     else {
 	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
-	vireo.out.sample_summary_tsv.view()    
+
+	vireo_out_sample_summary_tsv = vireo.out.sample_summary_tsv
+	vireo_out_sample_donor_ids = vireo.out.sample_donor_ids
     }
 
     // vireo() outputs -> split_donor_h5ad(): 
-    split_donor_h5ad(vireo.out.sample_donor_ids.combine(ch_experiment_filth5, by: 0))
+    split_donor_h5ad(vireo_out_sample_donor_ids.combine(ch_experiment_filth5, by: 0))
     
     // all vireo() outputs collected -> plot_donor_ncells(): 
-    vireo.out.sample_summary_tsv
+    vireo_out_sample_summary_tsv
 	.collectFile(name: "vireo_donor_n_cells.tsv", 
 		     newLine: false, sort: true,
 		     seed: "experiment_id\tdonor\tn_cells\n",
@@ -58,6 +64,6 @@ workflow  main_deconvolution {
     plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
 
 
-    emit:
-    vireo.out.sample_summary_tsv
+    //emit:
+    //vireo.out.sample_summary_tsv
 }
