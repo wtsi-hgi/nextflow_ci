@@ -9,7 +9,7 @@ process subset_genotype {
     params.run 
 
     input:
-    set val(samplename), file(cellsnp_vcf), file(sample_subset_file), file(donor_vcf)
+    set val(samplename), file(cellsnp_vcf), file(donor_vcf), file(sample_subset_file)
     
     output:
     tuple val(samplename), file("${samplename}.subset.vcf.gz"), emit: samplename_subsetvcf
