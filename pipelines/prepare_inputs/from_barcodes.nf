@@ -15,10 +15,17 @@ workflow from_barcodes {
 	.map{row->tuple(row.experiment_id, row.data_path_bam_file ,row.data_path_barcodes)}
 	.set{pre_ch_experiment_bam_barcodes}
 
+
+    if (split_h5ad_per_donor.run) {
     channel_input_data_table
         .splitCsv(header: true, sep: params.input_tables_column_delimiter)
 	.map{row->tuple(row.experiment_id, row.data_path_filt_h5)}
 	.set{pre_ch_experiment_filth5} // this channel is used for task 'split_donor_h5ad'
+    } else {
+	// create dummy channel
+	pre_ch_experiment_filth5  = Channel.from(tuple("foo","bar"))
+    }
+    
 
     if (params.vireo.run_with_genotype_input) {
 	log.info "You have selected params.vireo.run_with_genotype_input=true -> will run Vireo with genotype input. Input VCF and list of donors per experiment_id gathered from params.vireo.genotype_input.path_donor_vcfs_table)"
@@ -34,6 +41,9 @@ workflow from_barcodes {
 	    log.info "Please fix input table (currently set to ${params.vireo.genotype_input.path_donor_vcfs_table})"
 	    exit 1
 	}
+    } else {
+	// create dummy channel
+	pre_ch_experiment_donorsvcf_donorslist  = Channel.from(tuple("foo","bar","foo"))
     }
     
 
