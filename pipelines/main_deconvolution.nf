@@ -15,6 +15,7 @@ workflow  main_deconvolution {
     ch_experiment_bam_bai_barcodes
     ch_experiment_npooled
     ch_experiment_filth5
+    ch_experiment_donorsvcf_donorslist
 
     main:
     log.info "running workflow main_deconvolution() ..."
