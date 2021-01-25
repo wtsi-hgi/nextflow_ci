@@ -25,8 +25,24 @@ workflow  main_deconvolution {
 	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
 
     // cellsnp() outputs -> vireo():
-    vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
-    vireo.out.sample_summary_tsv.view()    
+    // Vireo with genotype input:
+    if (params.vireo.run_with_genotype_input) {
+
+	subset_genoytpe(
+	ch_experiment_donorsvcf_donorslist
+	    .map { experiment, donorsvcf, donorslist -> tuple(experiment, 
+							      file(params.cellsnp.vcf_candidate_snps)
+							      file(donorsvcf),
+							      file(donorslist))})
+
+	vireo_with_genotype(cellsnp.out.cellsnp_output_dir
+			    .combine(subset_genoytpe.out.samplename_subsetvcf, by: 0))
+    }
+    // Vireo without genotype input:
+    else {
+	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
+	vireo.out.sample_summary_tsv.view()    
+    }
 
     // vireo() outputs -> split_donor_h5ad(): 
     split_donor_h5ad(vireo.out.sample_donor_ids.combine(ch_experiment_filth5, by: 0))
