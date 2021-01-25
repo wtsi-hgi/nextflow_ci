@@ -11,4 +11,5 @@ workflow from_cellranger_filt_directory {
     ch_experiment_bam_bai_barcodes
     ch_experiment_npooled
     ch_experiment_filth5
+    ch_experiment_donorsvcf_donorslist
 }
