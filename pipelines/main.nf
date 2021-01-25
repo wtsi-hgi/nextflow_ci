@@ -26,7 +26,8 @@ workflow {
     // run main deconvolution pipeline on prepared input channels:
     main_deconvolution(prepare_inputs.out.ch_experiment_bam_bai_barcodes,
 		       prepare_inputs.out.ch_experiment_npooled,
-		       prepare_inputs.out.ch_experiment_filth5)
+		       prepare_inputs.out.ch_experiment_filth5,
+		       prepare_inputs.out.ch_experiment_donorsvcf_donorslist)
     
 }
 
