@@ -27,6 +27,7 @@ workflow prepare_inputs {
 	ch_experiment_bam_bai_barcodes = from_barcodes.out.ch_experiment_bam_bai_barcodes
 	ch_experiment_npooled = from_barcodes.out.ch_experiment_npooled
 	ch_experiment_filth5 = from_barcodes.out.ch_experiment_filth5
+	ch_experiment_donorsvcf_donorslist = from_barcodes.out.ch_experiment_donorsvcf_donorslist
 
     } else if(params.cellsnp_input_table_mode == 'from_h5') {
 
@@ -36,6 +37,7 @@ workflow prepare_inputs {
 	ch_experiment_bam_bai_barcodes = from_h5.out.ch_experiment_bam_bai_barcodes
 	ch_experiment_npooled = from_h5.out.ch_experiment_npooled
 	ch_experiment_filth5 = from_h5.out.ch_experiment_filth5
+	ch_experiment_donorsvcf_donorslist = from_h5.out.ch_experiment_donorsvcf_donorslist
 
     } else if(params.cellsnp_input_table_mode == 'from_cellranger_filt_directory') {
 	
@@ -45,6 +47,7 @@ workflow prepare_inputs {
 	ch_experiment_bam_bai_barcodes = from_cellranger_filt_directory.out.ch_experiment_bam_bai_barcodes
 	ch_experiment_npooled = from_cellranger_filt_directory.out.ch_experiment_npooled
 	ch_experiment_filth5 = from_cellranger_filt_directory.out.ch_experiment_filth5
+	ch_experiment_donorsvcf_donorslist = from_cellranger_filt_directory.out.ch_experiment_donorsvcf_donorslist
 	
     } else {
 	log.info "Error: input parameter 'cellsnp_input_table_mode' should be set to either 'from_barcodes' or 'from_h5' or 'from_cellranger_filt_directory'"
@@ -55,4 +58,5 @@ workflow prepare_inputs {
     ch_experiment_bam_bai_barcodes
     ch_experiment_npooled
     ch_experiment_filth5
+    ch_experiment_donorsvcf_donorslist
 }
