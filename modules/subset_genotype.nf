@@ -1,6 +1,6 @@
 process subset_genotype {
     tag "${samplename}"
-    publishDir "${params.outdir}/subset_genotype/", mode: "${params.copy_mode}", pattern: "${samplename}.subset.vcf.gz"
+    publishDir "${params.outdir}/subset_genotype/", mode: "${params.subset_genotype.copy_mode}", pattern: "${samplename}.subset.vcf.gz"
     
     when: 
     params.vireo_with_genotype.subset_genotype.run

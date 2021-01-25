@@ -1,6 +1,6 @@
 process vireo {
     tag "${samplename}"
-    publishDir "${params.outdir}/vireo/${samplename}/", mode: "${params.copy_mode}", overwrite: true
+    publishDir "${params.outdir}/vireo/${samplename}/", mode: "${params.vireo.copy_mode}", overwrite: true
     
     when: 
     params.vireo.run

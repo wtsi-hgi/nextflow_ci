@@ -1,9 +1,9 @@
 process vireo_with_genotype {
     tag "${samplename}"
-    publishDir "${params.outdir}/vireo_gt/${samplename}/", mode: "${params.copy_mode}", overwrite: true
+    publishDir "${params.outdir}/vireo_gt/${samplename}/", mode: "${params.vireo.copy_mode}", overwrite: true
     
     when: 
-    params.vireo_with_genotype.run
+    params.vireo.run_with_genotype_input
     
     input:
     tuple val(samplename), path(cell_data), path(donors_gt_vcf)

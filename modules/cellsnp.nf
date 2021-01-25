@@ -1,6 +1,6 @@
 process cellsnp {
     tag "${samplename}"
-    publishDir "${params.outdir}/cellsnp/", mode: "${params.copy_mode}", pattern: "cellsnp_${samplename}", overwrite: true
+    publishDir "${params.outdir}/cellsnp/", mode: "${params.cellsnp.copy_mode}", pattern: "cellsnp_${samplename}", overwrite: true
     
     when: 
     params.cellsnp.run
