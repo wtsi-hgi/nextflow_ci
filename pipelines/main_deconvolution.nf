@@ -21,8 +21,8 @@ workflow  main_deconvolution {
     log.info "running workflow main_deconvolution() ..."
 
     // cellsnp() from pipeline provided inputs:
-    cellsnp(ch_experiment_bam_bai_barcodes,
-	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
+//    cellsnp(ch_experiment_bam_bai_barcodes,
+//	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
 
     // cellsnp() outputs -> vireo():
 
