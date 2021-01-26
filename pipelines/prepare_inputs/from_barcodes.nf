@@ -16,13 +16,14 @@ workflow from_barcodes {
 	.set{pre_ch_experiment_bam_barcodes}
 
 
-    if (split_h5ad_per_donor.run) {
+    if (params.split_h5ad_per_donor.run) {
     channel_input_data_table
         .splitCsv(header: true, sep: params.input_tables_column_delimiter)
 	.map{row->tuple(row.experiment_id, row.data_path_filt_h5)}
 	.set{pre_ch_experiment_filth5} // this channel is used for task 'split_donor_h5ad'
     } else {
 	// create dummy channel
+	log.info "using dummy channel for pre_ch_experiment_filth5, because unused."
 	pre_ch_experiment_filth5  = Channel.from(tuple("foo","bar"))
     }
     
@@ -43,6 +44,7 @@ workflow from_barcodes {
 	}
     } else {
 	// create dummy channel
+	log.info "using dummy channel for pre_ch_experiment_donorsvcf_donorslist, because unused."
 	pre_ch_experiment_donorsvcf_donorslist  = Channel.from(tuple("foo","bar","foo"))
     }
     
