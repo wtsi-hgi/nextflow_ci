@@ -34,7 +34,7 @@ workflow from_barcodes {
 	    
 	    params.vireo.genotype_input.path_donor_vcfs_table
 		.splitCsv(header: true, sep: params.input_tables_column_delimiter)
-		.map{row->tuple(row.donors_vcf, row.donors_list)}
+		.map{row->tuple(row.experiment_id, row.donors_vcf, row.donors_list)}
 		.set{pre_ch_experiment_donorsvcf_donorslist}
 	    
 	} else {
