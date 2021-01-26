@@ -28,7 +28,7 @@ workflow  main_deconvolution {
 
     // Vireo with genotype input:
     if (params.vireo.run_with_genotype_input) {
-
+        log.info "running Vireo with genotype input"
 	// for each experiment_id to deconvolute, subset donors vcf to its donors and subset genomic regions. 
 	subset_genoytpe(
 	ch_experiment_donorsvcf_donorslist
@@ -45,6 +45,7 @@ workflow  main_deconvolution {
     }
     // Vireo without genotype input:
     else {
+        log.info "running Vireo without genotype input"
 	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
 
 	vireo_out_sample_summary_tsv = vireo.out.sample_summary_tsv
