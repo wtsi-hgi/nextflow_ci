@@ -25,6 +25,7 @@ workflow  main_deconvolution {
 	    Channel.fromPath(params.cellsnp.vcf_candidate_snps).collect())
 
     // cellsnp() outputs -> vireo():
+
     // Vireo with genotype input:
     if (params.vireo.run_with_genotype_input) {
 
