@@ -7,6 +7,7 @@ nextflow.enable.dsl=2
 
 // module to prepare input channels depending on which params.cellsnp_input_table_mode was set:
 include { prepare_inputs } from './prepare_inputs.nf'  
+
 // main deconvolution pipeline once inputs channels are prepared:
 include { main_deconvolution } from './main_deconvolution.nf'  
 
