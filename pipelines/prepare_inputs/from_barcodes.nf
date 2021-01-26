@@ -87,6 +87,7 @@ workflow from_barcodes {
 	pre_ch_experiment_donorsvcf_donorslist
 	    .set{ch_experiment_donorsvcf_donorslist}
     }
+    ch_experiment_donorsvcf_donorslist.view()
     
     emit:
     ch_experiment_bam_bai_barcodes
