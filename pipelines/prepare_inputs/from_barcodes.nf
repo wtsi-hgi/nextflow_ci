@@ -46,8 +46,8 @@ workflow from_barcodes {
     } else {
 	// create dummy channel
 	log.info "using dummy channel for pre_ch_experiment_donorsvcf_donorslist, because unused."
-//	pre_ch_experiment_donorsvcf_donorslist  = Channel.from(tuple("foo","bar","foo"))
-//	pre_ch_experiment_donorsvcf_donorslist.view()
+	pre_ch_experiment_donorsvcf_donorslist = Channel.from("foo").map { foo -> tuple("foo1","foo2","foo3") }
+	pre_ch_experiment_donorsvcf_donorslist.view()
     }
     
 
@@ -72,13 +72,13 @@ workflow from_barcodes {
 										      params.replace_in_path_to))}
 	    .set{ch_experiment_bam_bai_barcodes}
 	
-//	pre_ch_experiment_donorsvcf_donorslist
-//	    .map{experiment, donorsvcf, donorslist -> tuple(experiment, 
-//							    donorsvcf.replaceFirst(/${params.replace_in_path_from}/,
-//										 params.replace_in_path_to),
-//							    donorslist.replaceFirst(/${params.replace_in_path_from}/,
-//										      params.replace_in_path_to))}
-//	    .set{ch_experiment_donorsvcf_donorslist}
+	pre_ch_experiment_donorsvcf_donorslist
+	    .map{experiment, donorsvcf, donorslist -> tuple(experiment, 
+							    donorsvcf.replaceFirst(/${params.replace_in_path_from}/,
+										 params.replace_in_path_to),
+							    donorslist.replaceFirst(/${params.replace_in_path_from}/,
+										      params.replace_in_path_to))}
+	    .set{ch_experiment_donorsvcf_donorslist}
 	
     } else {
 	log.info "no replace in path."
@@ -90,14 +90,11 @@ workflow from_barcodes {
 	    .map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
 	    .set {ch_experiment_bam_bai_barcodes}
 
-//	pre_ch_experiment_donorsvcf_donorslist
-//	    .set{ch_experiment_donorsvcf_donorslist}
+	pre_ch_experiment_donorsvcf_donorslist
+	    .set{ch_experiment_donorsvcf_donorslist}
     }
 
 
-    ch_experiment_donorsvcf_donorslist = Channel.from("foo").map { foo -> tuple("foo1","foo2","foo3") }
-    ch_experiment_donorsvcf_donorslist.view()
-    
     emit:
     ch_experiment_bam_bai_barcodes
     ch_experiment_npooled
