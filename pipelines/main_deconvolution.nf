@@ -32,7 +32,7 @@ workflow  main_deconvolution {
 	subset_genoytpe(
 	ch_experiment_donorsvcf_donorslist
 	    .map { experiment, donorsvcf, donorslist -> tuple(experiment, 
-							      file(params.cellsnp.vcf_candidate_snps)
+							      file(params.cellsnp.vcf_candidate_snps),
 							      file(donorsvcf),
 							      file(donorslist))})
 
