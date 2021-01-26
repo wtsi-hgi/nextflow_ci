@@ -19,7 +19,7 @@ workflow prepare_inputs {
 	exit 1
     }
 
-    if (parans.cellsnp.run & file(params.cellsnp.vcf_candidate_snps).isEmpty()) {
+    if (params.cellsnp.run & file(params.cellsnp.vcf_candidate_snps).isEmpty()) {
 	log.info "ERROR: input parameter 'params.vcf_candidate_snps' should be a valid path to a non-empty file that lists common SNPs for CellSNP."
 	log.info "current 'params.vcf_candidate_snps': ${params.cellsnp.vcf_candidate_snps}"
 	exit 1
