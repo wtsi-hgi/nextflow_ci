@@ -94,7 +94,7 @@ workflow from_barcodes {
 //	    .set{ch_experiment_donorsvcf_donorslist}
     }
 
-    ch_experiment_donorsvcf_donorslist = Channel.from(tuple("foo","bar","foo"))
+    ch_experiment_donorsvcf_donorslist = Channel.from("foo").map { foo -> tuple("foo1","foo2","foo3") }
     ch_experiment_donorsvcf_donorslist.view()
     
     emit:
