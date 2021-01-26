@@ -46,6 +46,7 @@ workflow from_barcodes {
 	// create dummy channel
 	log.info "using dummy channel for pre_ch_experiment_donorsvcf_donorslist, because unused."
 	pre_ch_experiment_donorsvcf_donorslist  = Channel.from(tuple("foo","bar","foo"))
+	pre_ch_experiment_donorsvcf_donorslist.view()
     }
     
 
@@ -53,6 +54,8 @@ workflow from_barcodes {
     // used if path to input files are mounted differently on the file-system
     // (e.g. if /lustre is mounted in Openstack on a different absolute path in nextflow  worker nodes)
     if (params.replace_in_path) {
+	log.info "replace in path."
+
 	pre_ch_experiment_filth5
 	    .map{experiment, path -> tuple(experiment, path.replaceFirst(/${params.replace_in_path_from}/,
 									 params.replace_in_path_to))}
@@ -77,6 +80,8 @@ workflow from_barcodes {
 	    .set{ch_experiment_donorsvcf_donorslist}
 	
     } else {
+	log.info "no replace in path."
+
 	pre_ch_experiment_filth5
 	    .set{ch_experiment_filth5}
 	    
@@ -87,6 +92,7 @@ workflow from_barcodes {
 	pre_ch_experiment_donorsvcf_donorslist
 	    .set{ch_experiment_donorsvcf_donorslist}
     }
+
     ch_experiment_donorsvcf_donorslist.view()
     
     emit:
