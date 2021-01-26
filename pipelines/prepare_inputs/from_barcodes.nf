@@ -26,7 +26,6 @@ workflow from_barcodes {
 	// create dummy channel
 	log.info "using dummy channel for pre_ch_experiment_filth5, because unused."
 	pre_ch_experiment_filth5 = Channel.from("foo").map { foo -> tuple("foo1","foo2") }
-	pre_ch_experiment_filth5.view()
     }
     
 
@@ -48,7 +47,6 @@ workflow from_barcodes {
 	// create dummy channel
 	log.info "using dummy channel for pre_ch_experiment_donorsvcf_donorslist, because unused."
 	pre_ch_experiment_donorsvcf_donorslist = Channel.from("foo").map { foo -> tuple("foo1","foo2","foo3") }
-	pre_ch_experiment_donorsvcf_donorslist.view()
     }
     
 
