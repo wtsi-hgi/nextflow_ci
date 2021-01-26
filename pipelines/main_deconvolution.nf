@@ -46,24 +46,24 @@ workflow  main_deconvolution {
     // Vireo without genotype input:
     else {
         log.info "running Vireo without genotype input"
-	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
-
-	vireo_out_sample_summary_tsv = vireo.out.sample_summary_tsv
-	vireo_out_sample_donor_ids = vireo.out.sample_donor_ids
+//	vireo(cellsnp.out.cellsnp_output_dir.combine(ch_experiment_npooled, by: 0))
+//
+//	vireo_out_sample_summary_tsv = vireo.out.sample_summary_tsv
+//	vireo_out_sample_donor_ids = vireo.out.sample_donor_ids
     }
-
-    // vireo() outputs -> split_donor_h5ad(): 
-    split_donor_h5ad(vireo_out_sample_donor_ids.combine(ch_experiment_filth5, by: 0))
-    
-    // all vireo() outputs collected -> plot_donor_ncells(): 
-    vireo_out_sample_summary_tsv
-	.collectFile(name: "vireo_donor_n_cells.tsv", 
-		     newLine: false, sort: true,
-		     seed: "experiment_id\tdonor\tn_cells\n",
-		     storeDir:params.outdir)
-	.set{ch_vireo_donor_n_cells_tsv} // donor column: donor0, .., donorx, doublet, unassigned
-
-    plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
+//
+//    // vireo() outputs -> split_donor_h5ad(): 
+//    split_donor_h5ad(vireo_out_sample_donor_ids.combine(ch_experiment_filth5, by: 0))
+//    
+//    // all vireo() outputs collected -> plot_donor_ncells(): 
+//    vireo_out_sample_summary_tsv
+//	.collectFile(name: "vireo_donor_n_cells.tsv", 
+//		     newLine: false, sort: true,
+//		     seed: "experiment_id\tdonor\tn_cells\n",
+//		     storeDir:params.outdir)
+//	.set{ch_vireo_donor_n_cells_tsv} // donor column: donor0, .., donorx, doublet, unassigned
+//
+//    plot_donor_ncells(ch_vireo_donor_n_cells_tsv)
 
 
     //emit:
