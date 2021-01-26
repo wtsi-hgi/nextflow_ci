@@ -45,7 +45,7 @@ workflow from_barcodes {
     } else {
 	// create dummy channel
 	log.info "using dummy channel for pre_ch_experiment_donorsvcf_donorslist, because unused."
-	pre_ch_experiment_donorsvcf_donorslist  = Channel.from([tuple("foo","bar","foo")])
+	pre_ch_experiment_donorsvcf_donorslist  = Channel.from(tuple("foo","bar","foo"))
 	pre_ch_experiment_donorsvcf_donorslist.view()
     }
     
