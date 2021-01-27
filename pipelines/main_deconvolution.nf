@@ -43,6 +43,7 @@ workflow  main_deconvolution {
 	vireo_out_sample_summary_tsv = vireo_with_genotype.out.sample_summary_tsv
 	vireo_out_sample_donor_ids = vireo_with_genotype.out.sample_donor_ids
     }
+
     // Vireo without genotype input:
     else {
         log.info "running Vireo without genotype input"
