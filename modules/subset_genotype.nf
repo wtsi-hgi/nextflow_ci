@@ -3,7 +3,7 @@ process subset_genotype {
     publishDir "${params.outdir}/subset_genotype/", mode: "${params.subset_genotype.copy_mode}", pattern: "${samplename}.subset.vcf.gz"
     
     when: 
-    params.vireo_with_genotype.subset_genotype.run
+    params.vireo.run_with_genotype_input
 
     input:
     tuple val(samplename), path(cellsnp_vcf), path(donor_vcf), path(sample_subset_path)
