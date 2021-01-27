@@ -38,7 +38,7 @@ workflow  main_deconvolution {
 							      file(donorslist))})
 
 	vireo_with_genotype(cellsnp.out.cellsnp_output_dir
-			    .combine(subset_genoytpe.out.samplename_subsetvcf, by: 0))
+			    .combine(subset_genotype.out.samplename_subsetvcf, by: 0))
 
 	vireo_out_sample_summary_tsv = vireo_with_genotype.out.sample_summary_tsv
 	vireo_out_sample_donor_ids = vireo_with_genotype.out.sample_donor_ids
