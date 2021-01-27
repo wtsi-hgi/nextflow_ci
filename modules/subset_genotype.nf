@@ -5,14 +5,11 @@ process subset_genotype {
     when: 
     params.vireo_with_genotype.subset_genotype.run
 
-    when:
-    params.run 
-
     input:
-    set val(samplename), file(cellsnp_vcf), file(donor_vcf), file(sample_subset_file)
+    tuple val(samplename), path(cellsnp_vcf), path(donor_vcf), path(sample_subset_path)
     
     output:
-    tuple val(samplename), file("${samplename}.subset.vcf.gz"), emit: samplename_subsetvcf
+    tuple val(samplename), path("${samplename}.subset.vcf.gz"), emit: samplename_subsetvcf
 
     script:
     """
