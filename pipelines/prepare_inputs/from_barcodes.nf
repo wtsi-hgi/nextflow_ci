@@ -33,7 +33,8 @@ workflow from_barcodes {
 	log.info "You have selected params.vireo.run_with_genotype_input=true -> will run Vireo with genotype input. Input VCF and list of donors per experiment_id gathered from params.vireo.genotype_input.path_donor_vcfs_table)"
 	if (! file(params.vireo.genotype_input.path_donor_vcfs_table).isEmpty()) {
 	    
-	    params.vireo.genotype_input.path_donor_vcfs_table
+	    log.info("Channel.fromPath(params.vireo.genotype_input.path_donor_vcfs_table)")
+	    Channel.fromPath(params.vireo.genotype_input.path_donor_vcfs_table)
 		.splitCsv(header: true, sep: params.input_tables_column_delimiter)
 		.map{row->tuple(row.experiment_id, row.donors_vcf, row.donors_list)}
 		.set{pre_ch_experiment_donorsvcf_donorslist}
