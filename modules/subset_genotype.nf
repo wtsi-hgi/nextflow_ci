@@ -6,7 +6,7 @@ process subset_genotype {
     params.vireo.run_with_genotype_input
 
     input:
-    tuple val(samplename), path(cellsnp_vcf), path(donor_vcf), path(sample_subset_path)
+    tuple val(samplename), path(cellsnp_vcf), path(donor_vcf), path(sample_subset_file)
     
     output:
     tuple val(samplename), path("${samplename}.subset.vcf.gz"), emit: samplename_subsetvcf
