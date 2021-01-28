@@ -87,7 +87,7 @@ workflow from_barcodes {
 	    .set{ch_experiment_filth5}
 	    
 	pre_ch_experiment_bam_barcodes
-	    .map { a,b,c,d -> tuple(a, file(b), file("${b}.bai"), file(c))}
+	    .map { a,b,c -> tuple(a, file(b), file("${b}.bai"), file(c))}
 	    .set {ch_experiment_bam_bai_barcodes}
 
 	pre_ch_experiment_donorsvcf_donorslist
