@@ -27,7 +27,7 @@ workflow get_fastq {
 	    .splitCsv(header: true, sep: '\t')
 	    .map{row->tuple(row.sample, row.sample_supplier_name, row.study_id)}
 	    .map{a,b,c-> tuple(a,c)}
-	iget_cram(to_iget.take(2))
+	iget_cram(to_iget)
 	
 	// Optionally, extract egan IDs from cram files:
 	get_egan_id(iget_cram.out[0])
