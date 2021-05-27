@@ -7,10 +7,10 @@ params.outdir = "${baseDir}/../../outputs"
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 //params.bed_dir = "/lustre/scratch118/humgen/resources/exome/Homo_sapiens/"
 
-include sort_cram from '../modules/variant_calling/sort_cram.nf' params(run: true, outdir: params.outdir)
-include markDuplicates from '../modules/variant_calling/markDuplicates.nf' params(run: true, outdir: params.outdir)
-include coord_sort_cram from '../modules/variant_calling/coord_sort_cram.nf' params(run: true, outdir: params.outdir)
-include deepvariant from '../modules/variant_calling/deepvariant.nf' params(run: true, outdir: params.outdir)
+include sort_cram from '../modules/sort_cram.nf' params(run: true, outdir: params.outdir)
+include markDuplicates from '../modules/markDuplicates.nf' params(run: true, outdir: params.outdir)
+include coord_sort_cram from '../modules/coord_sort_cram.nf' params(run: true, outdir: params.outdir)
+include deepvariant from '../modules/deepvariant.nf' params(run: true, outdir: params.outdir)
 
 workflow {
 
