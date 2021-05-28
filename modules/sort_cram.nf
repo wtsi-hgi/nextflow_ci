@@ -1,6 +1,6 @@
-//params.run = true
 
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
+//    log.info "${params.ref_dir}"
 
 process sort_cram {
     memory '10G'
@@ -18,6 +18,7 @@ process sort_cram {
 
     when:
     params.run_sort_cram
+    //params.run
      
     input:
     path cram_file
