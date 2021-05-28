@@ -14,7 +14,7 @@ process deepvariant {
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     //errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
-    publishDir "${params.outdir}/", mode: 'symlink', overwrite: true, pattern: "*gz*"
+    publishDir "${params.output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
     maxRetries 3
 
     when:
