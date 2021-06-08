@@ -3,7 +3,7 @@
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 
 process coord_sort_cram {
-    memory '10G'
+    memory '16G'
     tag "$cram_file"
     //cpus 1
     disk '20 GB'
@@ -28,7 +28,7 @@ process coord_sort_cram {
 
     script:
 """ 
-/gatk/gatk --java-options "-Xms4g -Xmx4g  -XX:+UseSerialGC" SortSam -I ${cram_file_sorted_dups} -O ${cram_file_sorted_dups}.coord -SO "coordinate" -R /ref/hs38DH.fa --CREATE_INDEX true --TMP_DIR /tmp
+/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" SortSam -I ${cram_file_sorted_dups} -O ${cram_file_sorted_dups}.coord -SO "coordinate" -R /ref/hs38DH.fa --CREATE_INDEX true --TMP_DIR /tmp --MAX_RECORDS_IN_RAM 100000
 """
 }
 
