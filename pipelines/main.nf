@@ -22,7 +22,7 @@ workflow {
 	ch_cram_file = Channel
 		.fromPath(params.cram_fofn)
 		.splitText()
-		.take(1)
+		//.take(1)
 		//.view()
      main:
         
