@@ -4,12 +4,13 @@
 //params.bed_dir = "/lustre/scratch118/humgen/resources/exome/Homo_sapiens/"
 
 process deepvariant {
-    memory '8G'
+    //memory '8G'
     //tag "$cram_file"
     //cpus 1
     //disk '20 GB'
     //time '100m'
     //queue 'normal'
+    clusterOptions = { "-M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==\"Intel_Platinum\"]\"" }
     container  = 'file:///software/hgi/containers/deepvariant_0.10_UKB.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
