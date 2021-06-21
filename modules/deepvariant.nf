@@ -6,11 +6,11 @@
 process deepvariant {
     //memory '8G'
     //tag "$cram_file"
-    //cpus 1
+    cpus 2
     //disk '20 GB'
     //time '100m'
     //queue 'normal'
-    clusterOptions = { "-n2 -R \"span[hosts=1]\" -M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==Intel_Platinum]\"" }
+    clusterOptions = { "-R \"span[hosts=1]\" -M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==Intel_Platinum]\"" }
     container  = 'file:///software/hgi/containers/deepvariant_0.10_UKB.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
