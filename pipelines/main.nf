@@ -28,10 +28,10 @@ workflow {
         
         log.info "${params.ref_dir}"
         
-	sort_cram(ch_cram_file)
-	markDuplicates(sort_cram.out)
-	coord_sort_cram(markDuplicates.out)
-	deepvariant(coord_sort_cram.out)
+	//sort_cram(ch_cram_file)
+	//markDuplicates(sort_cram.out)
+	//coord_sort_cram(markDuplicates.out)
+	deepvariant(ch_cram_file)
      emit:
         my_data = deepvariant.out
         
