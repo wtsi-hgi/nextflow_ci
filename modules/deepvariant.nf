@@ -23,7 +23,8 @@ process deepvariant {
      
     input:
     //tuple path(cram_file_sorted_dups_coord), path(cram_file_sorted_dups_coord_index)
-    tuple path(cram_file), path("${cram_file}.crai")
+    path(cram_file)
+    path("${cram_file}.crai")
 
     output:
     tuple path("${cram_file}.vcf.gz"), path("${cram_file}.vcf.gz.tbi"), path("${cram_file}.g.vcf.gz"), path("${cram_file}.g.vcf.gz.tbi")
