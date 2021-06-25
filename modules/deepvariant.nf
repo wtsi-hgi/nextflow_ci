@@ -22,18 +22,16 @@ process deepvariant {
     params.run_deepvariant
      
     input:
-    //tuple path(cram_file_sorted_dups_coord), path(cram_file_sorted_dups_coord_index)
-    path(cram_file)
-    path("${cram_file}.crai")
+    tuple path(cram_file_sorted_dups_coord), path(cram_file_sorted_dups_coord_index)
 
     output:
-    tuple path("${cram_file}.vcf.gz"), path("${cram_file}.vcf.gz.tbi"), path("${cram_file}.g.vcf.gz"), path("${cram_file}.g.vcf.gz.tbi")
+    tuple path("${cram_file_sorted_dups_coord}.vcf.gz"), path("${cram_file_sorted_dups_coord}.vcf.gz.tbi"), path("${cram_file_sorted_dups_coord}.g.vcf.gz"), path("${cram_file_sorted_dups_coord}.g.vcf.gz.tbi")
     //tuple file("${cram_file}.sorted"), emit: indexes
 
 
     script:
 """ 
-/opt/deepvariant/bin/run_deepvariant --model_type=WES --customized_model=/opt/models/ukb_wes/model.ckpt-22236 --ref=/ref/hs38DH.fa --reads=${cram_file} --output_vcf=${cram_file}.vcf.gz --output_gvcf=${cram_file}.g.vcf.gz --intermediate_results_dir /tmp/${cram_file} --num_shards=1 --regions=/bed_files/UKBiobank/xgen_plus_spikein.b38_padded.bed
+/opt/deepvariant/bin/run_deepvariant --model_type=WES --customized_model=/opt/models/ukb_wes/model.ckpt-22236 --ref=/ref/hs38DH.fa --reads=${cram_file_sorted_dups_coord} --output_vcf=${cram_file_sorted_dups_coord}.vcf.gz --output_gvcf=${cram_file_sorted_dups_coord}.g.vcf.gz --intermediate_results_dir /tmp/${cram_file_sorted_dups_coord} --num_shards=1 --regions=/bed_files/UKBiobank/xgen_plus_spikein.b38_padded.bed
 """
 }
 
