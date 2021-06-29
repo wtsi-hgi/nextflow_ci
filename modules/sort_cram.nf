@@ -1,6 +1,6 @@
 
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
-param.samtools_dir = "/software/sciops/pkgg/samtools/1.10+42_g3c4b380+irods_4.2.7/bin"
+params.samtools_dir = "/software/sciops/pkgg/samtools/1.10+42_g3c4b380+irods_4.2.7/bin"
 //    log.info "${params.ref_dir}"
 
 process sort_cram {
