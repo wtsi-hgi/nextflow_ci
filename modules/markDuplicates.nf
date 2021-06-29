@@ -28,7 +28,7 @@ process markDuplicates {
 
     script:
 """ 
-/gatk/gatk --java-options "-Xms4g -Xmx4g  -XX:+UseSerialGC" MarkDuplicates -I ${cram_file_sorted} -O ${cram_file_sorted}.dups --METRICS_FILE ${cram_file_sorted}.dups.metrics -R /ref/hs38DH.fa --VALIDATION_STRINGENCY SILENT --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 --ASSUME_SORT_ORDER "queryname" --CLEAR_DT "false" --ADD_PG_TAG_TO_READS false --TMP_DIR=/tmp
+/gatk/gatk --java-options "-Xms4g -Xmx4g  -XX:+UseSerialGC" MarkDuplicates -I ${cram_file_sorted} -O ${cram_file_sorted}.dups --METRICS_FILE ${cram_file_sorted}.dups.metrics -R /ref/hs38DH.fa --VALIDATION_STRINGENCY SILENT --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 --ASSUME_SORT_ORDER "queryname" --CLEAR_DT "true" --ADD_PG_TAG_TO_READS false --TMP_DIR=/tmp
 """
 }
 
