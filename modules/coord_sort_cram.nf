@@ -3,13 +3,13 @@
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 
 process coord_sort_cram {
-    memory '16G'
+    memory '8G'
     tag "$cram_file"
     //cpus 1
     disk '20 GB'
     //time '100m'
     //queue 'normal'
-    container  = 'file:///software/hgi/containers/gatk-4.1.4.1.sif'
+    container  = 'file:///software/hgi/containers/sambamba_0.6.4.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
@@ -28,7 +28,7 @@ process coord_sort_cram {
 
     script:
 """ 
-/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" SortSam -I ${cram_file_sorted_dups} -O ${cram_file_sorted_dups}.coord -SO "coordinate" -R /ref/hs38DH.fa --CREATE_INDEX true --TMP_DIR /tmp --MAX_RECORDS_IN_RAM 100000
+sambamba sort -p -m 7GB --tmpdir /tmp ${cram_file_sorted_dups} -o ${cram_file_sorted_dups}.coord && sambamba index ${cram_file_sorted_dups}.coord
 """
 }
 
