@@ -11,7 +11,7 @@ process sort_cram {
     //time '100m'
     //queue 'normal'
     container  = 'file:///software/hgi/containers/sambamba_0.6.4.sif'
-    containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp --bind ${param.samtools_dir}:/samtools"
+    containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp --bind ${params.samtools_dir}:/samtools"
     // errorStrategy 'terminate'
     errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
