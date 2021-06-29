@@ -1,6 +1,5 @@
 
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
-params.samtools_dir = "/software/sciops/pkgg/samtools/1.10+42_g3c4b380+irods_4.2.7/bin"
 //    log.info "${params.ref_dir}"
 
 process sort_cram {
@@ -10,8 +9,8 @@ process sort_cram {
     disk '20 GB'
     //time '100m'
     //queue 'normal'
-    container  = 'file:///software/hgi/containers/sambamba_0.6.4.sif'
-    containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp --bind ${params.samtools_dir}:/samtools"
+    container  = 'file:///software/hgi/containers/samtools_sambamba.sif'
+    containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
@@ -30,7 +29,7 @@ process sort_cram {
 
     script:
 """ 
-/samtools/samtools view -O BAM ${cram_file} | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
+/opt/samtools/bin/samtools view -O BAM ${cram_file} | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
 """
 }
 
