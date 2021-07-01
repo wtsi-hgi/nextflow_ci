@@ -29,7 +29,7 @@ process sort_cram {
 
     script:
 """ 
-/opt/samtools/bin/samtools view -O BAM ${cram_file} | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
+/opt/samtools/bin/samtools view -h ${cram_file} | awk '{ if ( $1 ~ /^@/ ) {print} else { printf "%s\t", $1; if(and($2,0x400)) {t=$2-1024}else{t=$2}; printf "%s\t" , t; for (i=3; i<NF; i++){printf "%s\t", $i} ; printf "%s\n",$NF}}' | /opt/samtools/bin/samtools view -O BAM - | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
 """
 }
 
