@@ -29,7 +29,7 @@ process sort_cram {
 
     script:
 """ 
-/opt/samtools/bin/samtools view -h ${cram_file} | perl -lane 'BEGIN{\$, = "\t"} @flag = split /\t/;if (\$flag[1] & 0x400){ \$flag[1] = \$flag[1]-1024} print @flag' | /opt/samtools/bin/samtools view -O BAM - | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
+/opt/samtools/bin/samtools view -h ${cram_file} - | sambamba sort -p -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
 """
 }
 
