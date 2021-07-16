@@ -3,7 +3,7 @@
 //    log.info "${params.ref_dir}"
 
 process sort_cram {
-    memory '8G'
+    memory '12G'
     tag "$cram_file"
     //cpus 1
     disk '20 GB'

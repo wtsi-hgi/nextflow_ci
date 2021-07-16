@@ -3,7 +3,7 @@
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 
 process coord_sort_cram {
-    memory '8G'
+    memory '12G'
     tag "$cram_file"
     //cpus 1
     disk '20 GB'
