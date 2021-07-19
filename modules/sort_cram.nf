@@ -5,7 +5,7 @@
 process sort_cram {
     memory '12G'
     tag "$cram_file"
-    //cpus 1
+    cpus 2
     disk '20 GB'
     //time '100m'
     //queue 'normal'
