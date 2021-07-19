@@ -28,7 +28,7 @@ process coord_sort_cram {
 
     script:
 """ 
-sambamba sort -p -m 7GB --tmpdir /tmp ${cram_file_sorted_dups} -o ${cram_file_sorted_dups}.coord && sambamba index ${cram_file_sorted_dups}.coord
+sambamba sort -p -m 7GB --tmpdir ./tmp ${cram_file_sorted_dups} -o ${cram_file_sorted_dups}.coord && sambamba index ${cram_file_sorted_dups}.coord
 """
 }
 

@@ -29,7 +29,7 @@ process sort_cram {
 
     script:
 """ 
-/opt/samtools/bin/samtools view -b  ${cram_file} | sambamba sort -p -m 7GB -n --tmpdir /tmp /dev/stdin -o ${cram_file}.sorted
+/opt/samtools/bin/samtools view -b  ${cram_file} | sambamba sort -p -m 7GB -n --tmpdir ./tmp /dev/stdin -o ${cram_file}.sorted
 """
 }
 
