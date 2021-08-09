@@ -3,16 +3,17 @@
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 
 process coord_sort_cram {
-    memory '12G'
+    //memory '12G'
     tag "$cram_file"
-    cpus 2
+    //cpus 1
     disk '20 GB'
     //time '100m'
     //queue 'normal'
+    clusterOptions = { "-M 18000 -R \"select[mem>=18000] rusage[mem=18000]\" -R \"select[model==Intel_Platinum]\"" }
     container  = 'file:///software/hgi/containers/sambamba_0.6.4.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
-    errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
+    errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
     maxRetries 3
 
