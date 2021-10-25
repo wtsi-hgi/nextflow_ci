@@ -7,6 +7,7 @@ nextflow.enable.dsl=2
 
 // import modules that depend on input mode:
 include { imeta_study } from '../modules/imeta_study.nf'
+include { imeta_run } from '../modules/imeta_run.nf'
 include { imeta_samples_csv } from '../modules/imeta_samples_csv.nf'
 include { gsheet_to_csv } from '../modules/gsheet_to_csv.nf'
 // module specific to google_spreadsheet input mode:
@@ -22,6 +23,11 @@ workflow {
 	samples_irods_tsv = imeta_study.out.irods_samples_tsv
 	work_dir_to_remove = imeta_study.out.work_dir_to_remove }
     
+    else if (params.run_mode == "id_run") {
+             imeta_run(Channel.from(params.run_id_mode.input_run))
+   	     samples_irods_tsv = imeta_run.out.irods_samples_tsv
+	     work_dir_to_remove = imeta_run.out.work_dir_to_remove }
+
     else if (params.run_mode == "csv_samples_id") {
 	i1 = Channel.fromPath(params.csv_samples_id_mode.input_samples_csv)
 	i2 = Channel.from(params.csv_samples_id_mode.input_samples_csv_column)
