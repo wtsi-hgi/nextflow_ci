@@ -24,7 +24,7 @@ workflow {
 	work_dir_to_remove = imeta_study.out.work_dir_to_remove }
     
     else if (params.run_mode == "id_run") {
-             imeta_run(Channel.from(params.run_id_mode.input_id_runs))
+             imeta_run(Channel.from(params.id_run_mode.input_id_runs))
    	     samples_irods_tsv = imeta_run.out.irods_samples_tsv
 	     work_dir_to_remove = imeta_run.out.work_dir_to_remove }
 
