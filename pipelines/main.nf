@@ -7,8 +7,10 @@ nextflow.enable.dsl=2
 
 // import modules that depend on input mode:
 include { imeta_study } from '../modules/imeta_study.nf'
-include { imeta_samples_csv} from '../modules/imeta_samples_csv.nf'
-include { gsheet_to_csv} from '../modules/gsheet_to_csv.nf'
+include { imeta_samples_csv } from '../modules/imeta_samples_csv.nf'
+include { gsheet_to_csv } from '../modules/gsheet_to_csv.nf'
+// module specific to google_spreadsheet input mode:
+include { join_gsheet_metadata } from '../modules/join_gsheet_metadata.nf'
 
 // include workflow common to all input modes:
 include { run_from_irods_tsv } from './run_from_irods_tsv.nf'
@@ -38,14 +40,21 @@ workflow {
 	work_dir_to_remove = imeta_samples_csv.out.work_dir_to_remove.mix(gsheet_to_csv.out.work_dir_to_remove) }
 
     // common to all input modes:
+
+    
     run_from_irods_tsv(samples_irods_tsv)
 
     // list work dirs to remove (because they are Irods searches, so need to always rerun on each NF run):
     // these are removed on workflow.onComplete if (params.on_complete_uncache_irods_search), see below.
-    run_from_irods_tsv.out.mix(work_dir_to_remove)
-	.filter { it != "dont_remove" }
-	.collectFile(name: 'irods_work_dirs_to_remove.csv', newLine: true, sort: true,
-		     storeDir:params.outdir)
+
+    if (params.run_mode == "google_spreadsheet") {
+	// combine all samples tables (google spreadsheet, irods + cellranger metadata, cellranger /lustre file paths),
+	//   by joining on common sample column:
+	// the resulting combined tables can be fed directly as input to the Vireo deconvolution pipeline or QC pipeline.
+	join_gsheet_metadata(gsheet_to_csv.out.samples_csv,
+			     run_from_irods_tsv.out.ch_cellranger_metadata_tsv,
+			     run_from_irods_tsv.out.ch_file_paths_10x_tsv)
+    }
 }
 
 workflow.onError {
@@ -70,7 +79,7 @@ workflow.onComplete {
     if (params.on_complete_remove_workdir_failed_tasks) {
 	log.info "You have selected \"on_complete_remove_workdir_failed_tasks = true\"; will therefore remove work dirs of all tasks that failed (.exitcode file not 0)."
 	// work dir and other paths are hardcoded here ... :
-	def proc = "bash ./nextflow_ci/bin/del_work_dirs_failed.sh ${workDir}".execute()
+	def proc = "bash ${projectDir}/../bin/del_work_dirs_failed.sh ${workDir}".execute()
 	def b = new StringBuffer()
 	proc.consumeProcessErrorStream(b)
 	log.info proc.text
