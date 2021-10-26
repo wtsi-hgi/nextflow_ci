@@ -92,8 +92,8 @@ workflow run_from_irods_tsv {
 
     // visualiseMetadata(my_channel)
 
-      emit:
-      imeta_study_cellranger.out.work_dir_to_remove
+    //  emit:
+    //  imeta_study_cellranger.out.work_dir_to_remove
       }
 
 
