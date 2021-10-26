@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 id_run=$1
+guides=$2
 
 rm -f samples.tsv
+rm -f guides_library.tsv
 
 printf 'sample\tobject\tsample_supplier_name\tid_run\tis_paired_read\tstudy_id\tstudy\n' > samples.tsv
+printf 'samplename,library,includeG\n' > guides_library.tsv
 
 jq --arg id_run $id_run -n '{avus: [
        {attribute: "target", value: "1", o: "="},
@@ -16,6 +19,8 @@ jq '.[] as $a|
     sed s"/$(printf '\t')//"g |\
     sed s"/\"//"g |\
     sed s"/____/$(printf '\t')/"g |\
-sort | uniq >> samples.tsv
+    sort | uniq >> samples.tsv       
+
+tail -n +2 samples.tsv | awk -v guides=$guides 'BEGIN{FS="\t";OFS=","}{print$1,guides,"False"}' | sort -u >> guides_library.tsv
 
 echo jq search study id done

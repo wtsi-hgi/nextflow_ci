@@ -14,6 +14,7 @@ process imeta_run {
     output: 
     tuple val(id_run), path('samples.tsv'), emit: irods_samples_tsv
     tuple val(id_run), path('samples_noduplicates.tsv'), emit: samples_noduplicates_tsv
+    tuple val(id_run), path('guides_library.tsv'), emit: guides_library_tsv
     env(WORK_DIR), emit: work_dir_to_remove
 
     script:
