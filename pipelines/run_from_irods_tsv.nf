@@ -5,11 +5,11 @@ nextflow.enable.dsl=2
 // Meaning that if you wish to run pipeline with different parameters/tasks,
 // you have to edit(+commit+push) that "inputs.nf" file, then (CI-)rerun the pipeline.
 
-include { imeta_study_cellranger } from '../modules/imeta_study_cellranger.nf'
+// include { imeta_study_cellranger } from '../modules/imeta_study_cellranger.nf'
 include { iget_study_cram } from '../modules/iget_study_cram.nf'
-include { iget_study_cellranger } from '../modules/iget_study_cellranger.nf'
+// include { iget_study_cellranger } from '../modules/iget_study_cellranger.nf'
 include { crams_to_fastq } from '../modules/crams_to_fastq.nf'
-include {visualiseMetadata} from '../modules/visualiseMetadataPDFs.nf'
+// include {visualiseMetadata} from '../modules/visualiseMetadataPDFs.nf'
 
 workflow run_from_irods_tsv {
     take: channel_samples_tsv
