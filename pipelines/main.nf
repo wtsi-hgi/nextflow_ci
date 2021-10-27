@@ -15,6 +15,7 @@ include { join_gsheet_metadata } from '../modules/join_gsheet_metadata.nf'
 
 // include workflow common to all input modes:
 include { run_from_irods_tsv } from './run_from_irods_tsv.nf'
+include { crispr } from './crispr.nf'
 
 workflow {
 
