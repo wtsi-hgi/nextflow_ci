@@ -21,16 +21,16 @@ Channel.fromPath(params.samplename_library)
 
 
 
-include iget_crams from '../modules/crispr/irods.nf' params(run: true, outdir: params.outdir)
-include crams_to_fastq_gz from '../modules/crispr/crams_to_fastq_anyflag.nf' params(run:true, outdir: params.outdir,
+include { iget_crams } from '../modules/crispr/irods.nf' params(run: true, outdir: params.outdir)
+include { crams_to_fastq_gz } from '../modules/crispr/crams_to_fastq_anyflag.nf' params(run:true, outdir: params.outdir,
 								    min_reads: params.min_reads)
-include fastx_trimmer from '../modules/crispr/trim_fastq.nf' params(run: true, outdir: params.outdir)
-include merge_fastq_batches from '../modules/crispr/merge_fastq_batches.nf' params(run:true, outdir: params.outdir)
-include count_crispr_reads from '../modules/crispr/count_crispr_reads.nf' params(run: true, outdir: params.outdir,
+include { fastx_trimmer } from '../modules/crispr/trim_fastq.nf' params(run: true, outdir: params.outdir)
+include { merge_fastq_batches } from '../modules/crispr/merge_fastq_batches.nf' params(run:true, outdir: params.outdir)
+include { count_crispr_reads } from '../modules/crispr/count_crispr_reads.nf' params(run: true, outdir: params.outdir,
 							 read2: params.read2)
-include collate_crispr_counts from '../modules/crispr/collate_crispr_counts.nf' params(run: true, outdir: params.outdir)
-include fastqc from '../modules/crispr/fastqc.nf' params(run: true, outdir: params.outdir)
-include multiqc from '../modules/crispr/multiqc.nf' params(run: true, outdir: params.outdir,
+include { collate_crispr_counts } from '../modules/crispr/collate_crispr_counts.nf' params(run: true, outdir: params.outdir)
+include { fastqc } from '../modules/crispr/fastqc.nf' params(run: true, outdir: params.outdir)
+include { multiqc } from '../modules/crispr/multiqc.nf' params(run: true, outdir: params.outdir,
 						   runtag : params.runtag)
 
 workflow crispr {
