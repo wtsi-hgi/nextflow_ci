@@ -22,14 +22,14 @@ process count_crispr_reads {
     params.run
 
     input:
-    set val(samplename), file(fastq_files), val(guide_library), val(includeG) 
+    tuple val(samplename), file(fastq_files), val(guide_library), val(includeG) 
     file(library_files)
 
     output:
-    set val(guide_library), file("*.counts.txt")
+    tuple val(guide_library), file("*.counts.txt")
     file("${samplename}.mapping.txt")
-    set val(samplename), val(guide_library), stdout
-    set val(samplename), file("*.unmapped_sequences.txt")
+    tuple val(samplename), val(guide_library), stdout
+    tuple val(samplename), file("*.unmapped_sequences.txt")
 
     shell:
     """

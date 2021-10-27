@@ -21,10 +21,10 @@ process 'fastqc' {
     params.run 
 
     input:
-    set val(samplename), file(reads)
+    tuple val(samplename), file(reads)
     
     output:
-    set file("*fastqc.zip"), file("*fastqc.html")
+    tuple file("*fastqc.zip"), file("*fastqc.html")
 
   script:
   """

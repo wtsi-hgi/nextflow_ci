@@ -16,10 +16,10 @@ process 'fastx_trimmer' {
     params.run 
 
     input:
-    set val(samplename), val(batch), val(start_trim), file(fastq_gz_input)
+    tuple val(samplename), val(batch), val(start_trim), file(fastq_gz_input)
     
   output:
-    set val(samplename), val(batch), file("${samplename}.${batch}.fastq.gz")
+    tuple val(samplename), val(batch), file("${samplename}.${batch}.fastq.gz")
 
   script:
    """

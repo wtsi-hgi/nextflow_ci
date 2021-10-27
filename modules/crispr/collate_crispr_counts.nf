@@ -17,11 +17,11 @@ process collate_crispr_counts {
     params.run
 
     input:
-    set val(guide_library), file(samplename_counts_txt_files)
+    tuple val(guide_library), file(samplename_counts_txt_files)
 
     output:
-    set val(guide_library), file("*.count_matrix.txt")
-    set val(guide_library), file("*.fofn_countsfiles.txt")
+    tuple val(guide_library), file("*.count_matrix.txt")
+    tuple val(guide_library), file("*.fofn_countsfiles.txt")
 
     shell:
     """

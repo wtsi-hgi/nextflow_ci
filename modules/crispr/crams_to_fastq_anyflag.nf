@@ -25,9 +25,9 @@ process crams_to_fastq_gz {
     params.run
     
     input: 
-    set val(samplename), val(batch), file(crams) 
+    tuple val(samplename), val(batch), file(crams) 
     output: 
-    set val(samplename), val(batch), file("*.fastq.gz")
+    tuple val(samplename), val(batch), file("*.fastq.gz")
     file('*.lostcause.txt') optional true 
     file('numreads.txt') optional true 
     script:

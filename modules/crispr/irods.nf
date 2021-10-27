@@ -14,10 +14,10 @@ process 'iget_crams' {
     params.run 
 
     input:
-    set val(samplename), val(batch), val(sample), val(study_id)
+    tuple val(samplename), val(batch), val(sample), val(study_id)
     
   output:
-    set val(samplename), val(batch), file("*.cram"), file ("*.crai")
+    tuple val(samplename), val(batch), file("*.cram"), file ("*.crai")
 
   script:
     """

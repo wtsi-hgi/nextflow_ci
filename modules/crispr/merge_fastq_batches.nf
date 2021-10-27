@@ -14,10 +14,10 @@ process 'merge_fastq_batches' {
     params.run 
 
     input:
-    set val(samplename), val(batches), file(fastqs)
+    tuple val(samplename), val(batches), file(fastqs)
     
   output:
-    set val(samplename), file("${samplename}.fastq.gz")
+    tuple val(samplename), file("${samplename}.fastq.gz")
 
   script:
    """
