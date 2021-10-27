@@ -14,6 +14,7 @@ process crams_to_fastq {
     tuple val(study_id), val(sample), path("${study_id}.${sample}_merged.cram"), emit: study_sample_mergedcram
     path('*.lostcause.tsv'), emit: lostcause optional true 
     path('*.numreads.tsv'), emit: numreads optional true 
+    path('*.fastq.csv'), emit: fastq optional true 
     env(study_id), emit: study_id
 
     script:
@@ -32,7 +33,9 @@ process crams_to_fastq {
                               # -N {always append /1 and /2 to the read name}
                               # -F 0x900 (bit 1, 8, filter secondary and supplementary reads)
       echo -e "study_id\\tsample\\tnumreads" > ${study_id}.${sample}.numreads.tsv
+      echo -e "samplename,batch,start,_trim,fastq" > ${study_id}.${sample}.fastq.csv
       echo -e "${study_id}\\t${sample}\\t\${numreads}" >> ${study_id}.${sample}.numreads.tsv
+      echo -e "${sample},b1,1,${params.outdir}/crams_to_fastq/fastq/${study_id}/${sample}/${study_id}.${sample}.fastq.gz" >> ${study_id}.${sample}.fastq.csv
       samtools collate    \\
           -O -u           \\
           -@ ${task.cpus} \\

@@ -49,6 +49,7 @@ workflow {
 
     
     run_from_irods_tsv(samples_irods_tsv)
+    crispr()
 
     // list work dirs to remove (because they are Irods searches, so need to always rerun on each NF run):
     // these are removed on workflow.onComplete if (params.on_complete_uncache_irods_search), see below.

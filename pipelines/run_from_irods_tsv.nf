@@ -40,6 +40,11 @@ workflow run_from_irods_tsv {
 		     newLine: false, sort: true, keepHeader: true,
 		     storeDir:params.outdir)
 
+    crams_to_fastq.out.fastq
+        .collectFile(name: "samplename_to_fastq.csv",
+                     newLine: false, sort: true, keepHeader: true,
+                     storeDir:params.outdir)
+
     // task to search Irods cellranger location for each sample:
     //imeta_study_cellranger(
     //	channel_samples_tsv

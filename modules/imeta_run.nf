@@ -19,7 +19,7 @@ process imeta_run {
 
     script:
     """
-    bash $workflow.projectDir/../bin/imeta_run.sh ${id_run}
+    bash $workflow.projectDir/../bin/imeta_run.sh ${id_run} ${params.guide_library}
     awk '!a[\$1]++' samples.tsv > samples_noduplicates.tsv 
 
     # Save work dir so that it can be removed onComplete of workflow, 
