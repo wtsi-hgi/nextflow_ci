@@ -12,6 +12,7 @@ process crams_to_fastq {
     output: 
     tuple val(study_id), val(sample), path("*.fastq.gz"), emit: study_sample_fastqs
     tuple val(study_id), val(sample), path("${study_id}.${sample}_merged.cram"), emit: study_sample_mergedcram
+    tuple val(sample), val("${params.batch}"), val("${params.start_trim}"), path("*.fastq.gz"), emit: fastq_for_trim
     path('*.lostcause.tsv'), emit: lostcause optional true 
     path('*.numreads.tsv'), emit: numreads optional true 
     path('*.fastq.csv'), emit: fastq optional true 
