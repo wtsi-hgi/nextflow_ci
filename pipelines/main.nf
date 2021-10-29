@@ -5,6 +5,17 @@ nextflow.enable.dsl=2
 // Meaning that if you wish to run pipeline with different parameters,
 // you have to edit+commit+push that "inputs.nf" file, then rerun the pipeline.
 
+params.guide_libraries = "${baseDir}/../../inputs/guide_libraries/sgRNA_Minlib_CTLA4.guide_library.csv"
+
+Channel.fromPath(params.guide_libraries)
+    .set{ch_library_files}
+
+params.samplename_library = "${baseDir}/../../inputs/sample_guides.csv"
+Channel.fromPath(params.samplename_library)
+    .splitCsv(header: true)
+    .map { row -> tuple("${row.samplename}", "${row.library}", "${row.includeG}") }
+    .set{ch_samplename_library}
+
 // import modules that depend on input mode:
 include { imeta_study } from '../modules/imeta_study.nf'
 include { imeta_run } from '../modules/imeta_run.nf'
@@ -12,10 +23,20 @@ include { imeta_samples_csv } from '../modules/imeta_samples_csv.nf'
 include { gsheet_to_csv } from '../modules/gsheet_to_csv.nf'
 // module specific to google_spreadsheet input mode:
 include { join_gsheet_metadata } from '../modules/join_gsheet_metadata.nf'
+include { iget_study_cram } from '../modules/iget_study_cram.nf'
+include { crams_to_fastq } from '../modules/crams_to_fastq.nf'
+include { fastx_trimmer } from '../modules/crispr/trim_fastq.nf' params(run: true, outdir: params.outdir)
+include { merge_fastq_batches } from '../modules/crispr/merge_fastq_batches.nf' params(run:true, outdir: params.outdir)
+include { count_crispr_reads } from '../modules/crispr/count_crispr_reads.nf' params(run: true, outdir: params.outdir,
+                                                         read2: params.read2)
+include { collate_crispr_counts } from '../modules/crispr/collate_crispr_counts.nf' params(run: true, outdir: params.outdir)
+include { fastqc } from '../modules/crispr/fastqc.nf' params(run: true, outdir: params.outdir)
+include { multiqc } from '../modules/crispr/multiqc.nf' params(run: true, outdir: params.outdir,
+                                                   runtag : params.runtag)
 
 // include workflow common to all input modes:
-include { run_from_irods_tsv } from './run_from_irods_tsv.nf'
-include { crispr } from './crispr.nf'
+//include { run_from_irods_tsv } from './run_from_irods_tsv.nf'
+//include { crispr } from './crispr.nf'
 
 workflow {
 
@@ -49,8 +70,76 @@ workflow {
     // common to all input modes:
 
     
-    run_from_irods_tsv(samples_irods_tsv)
-    crispr()
+    //run_from_irods_tsv(samples_irods_tsv)
+    //crispr()
+
+    iget_study_cram(
+        samples_irods_tsv
+            .map{study_id, samples_tsv -> samples_tsv}
+            .splitCsv(header: true, sep: '\t')
+            .map{row->tuple(row.study_id, row.sample, row.object)}
+            .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+            .dump()
+            .unique())
+
+    crams_to_fastq(iget_study_cram.out.study_sample_cram.groupTuple(by: [0,1]))
+
+    // store the number of reads in merged cram in output tables
+    // lostcause has samples that did not pass the crams_to_fastq_min_reads input param, which is the minimum number of reads in merged cram file to try and convert to fastq.gz
+
+    crams_to_fastq.out.lostcause
+        .collectFile(name: "crams_to_fastq_lowreads.tsv",
+                     newLine: false, sort: true, keepHeader: true,
+                     storeDir:params.outdir)
+    // numreads has all samples that pass min number of reads number of reads in merged cram file
+    crams_to_fastq.out.numreads
+        .collectFile(name: "crams_to_fastq_numreads.tsv",
+                     newLine: false, sort: true, keepHeader: true,
+                     storeDir:params.outdir)
+    crams_to_fastq.out.fastq
+                .collectFile(name: "samplename_to_fastq.csv",
+                     newLine: false, sort: true, keepHeader: true,
+                     storeDir:params.outdir)
+
+   fastx_trimmer(crams_to_fastq.out.fastq_for_trim)
+
+    fastx_trimmer.out
+        .groupTuple(by: 0, sort: true)
+        .map{ samplename, batchs, fastqs -> tuple( groupKey(samplename, batchs.size()), batchs, fastqs ) }
+        .set{ch_samplename_fastqs_to_merge}
+
+    merge_fastq_batches(ch_samplename_fastqs_to_merge)
+
+    fastqc(fastx_trimmer.out
+            .map{ samplename, batch, fastq -> tuple( samplename, fastq ) }
+            .mix(merge_fastq_batches.out[0]))
+
+    multiqc(fastqc.out.collect())
+
+    merge_fastq_batches.out[0].view()
+
+    merge_fastq_batches.out[0]
+        .map{sample,fastq ->tuple("$sample",fastq)}
+        .combine(ch_samplename_library
+                 .map{sample,lib,keepg ->tuple("$sample",lib,keepg)}
+                 , by: 0)
+        .set{ch_samplename_fastq_library_includeG}
+
+    count_crispr_reads(ch_samplename_fastq_library_includeG, ch_library_files.collect())
+
+    collate_crispr_counts(
+        count_crispr_reads.out[0]
+            .map{ lib_csv,counts -> [ lib_csv.replaceAll(~/.csv/, ""), counts ] }
+            .transpose()
+            .groupTuple(by: 0, sort: true)
+            .mix(count_crispr_reads.out[0].
+                 map{lib,counts -> counts}.collect().map{a -> tuple("all_libs", a)})
+    )
+
+    count_crispr_reads.out[1].collectFile(name: 'mapping_percent.txt', newLine: true,
+                                          storeDir: "${params.outdir}/", sort: true)
+
+
 
     // list work dirs to remove (because they are Irods searches, so need to always rerun on each NF run):
     // these are removed on workflow.onComplete if (params.on_complete_uncache_irods_search), see below.

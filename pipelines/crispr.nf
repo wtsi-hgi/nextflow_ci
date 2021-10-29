@@ -4,16 +4,20 @@ params.read2 = 'discard' // used by count_crispr_reads
 params.min_reads = 500   // used by crams_to_fastq_gz
 
 // collect library tables:
-params.guide_libraries = "${baseDir}/../../inputs/guide_libraries/*.guide_library.csv"
+
+params.guide_libraries = "${baseDir}/../../inputs/guide_libraries/sgRNA_Minlib_CTLA4.guide_library.csv"
+
 //params.guide_libraries = "${baseDir}/../../guide_libraries/tim_7nov.csv"
 //params.guide_libraries = "${baseDir}/../../guide_libraries/tim_contamination.csv"
+
 Channel.fromPath(params.guide_libraries)
     .set{ch_library_files}
 
 // add guide library of each sample:
 // params.samplename_library = "${baseDir}/../../inputs/walkup101_libraries.csv"
 // params.samplename_library = "${baseDir}/../../inputs/walkup103_libraries.csv"
-params.samplename_library = "${baseDir}/../../inputs/ctla4_Oct12th_libraries.csv"
+
+params.samplename_library = "${baseDir}/../../inputs/sample_guides.csv"
 Channel.fromPath(params.samplename_library)
     .splitCsv(header: true)
     .map { row -> tuple("${row.samplename}", "${row.library}", "${row.includeG}") }
@@ -35,6 +39,7 @@ include { multiqc } from '../modules/crispr/multiqc.nf' params(run: true, outdir
 
 workflow crispr {
 
+    take: my_channel
     // 1.A: from irods:
     //Channel.fromPath('/lustre/scratch115/projects/bioaid/mercury_gn5/bioaid/inputs/to_iget.csv')
     //	.splitCsv(header: true)
@@ -46,9 +51,14 @@ workflow crispr {
 
     // 1.B: or directly from fastq (if from basespace/lustre location rather than irods)
     // Channel.fromPath("${baseDir}/../../inputs/walkup101_fastqs.csv")
-    Channel.fromPath("${baseDir}/../../results/samplename_to_fastq.csv")
+
+    main:
+
+    fastq_samples = my_channel.view()
+    Channel.fromPath('/lustre/scratch118/humgen/hgi/users/ad7/nextflow_crispr_gitlab/nextflow_ci/nextflow_ci/pipelines/../../results/samplename_to_fastq.csv')
 	.splitCsv(header: true)
 	.map { row -> tuple("${row.samplename}", "${row.batch}", "${row.start_trim}", file("${row.fastq}")) }
+        .dump()
 	.set{ch_samplename_batch_fastqs}
 
     fastx_trimmer(ch_samplename_batch_fastqs)
