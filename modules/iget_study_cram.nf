@@ -1,6 +1,6 @@
 process 'iget_study_cram' {
     tag "$sample"
-    publishDir "${params.outdir}/iget_study_cram/${study_id}/${sample}/", mode: "${params.copy_mode}"
+    publishDir "${params.cram_output_dir}", mode: "${params.copy_mode}"
     
     when: 
     params.run_iget_study_cram
@@ -14,8 +14,8 @@ process 'iget_study_cram' {
 
   script:
     """
-iget -K -f -v ${cram_irods_object}
+iget -K -f -I -v ${cram_irods_object}
 # get index file if exists:
-iget -K -f -v ${cram_irods_object}.crai || true
+iget -K -f -I -v ${cram_irods_object}.crai || true
    """
 }

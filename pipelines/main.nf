@@ -7,6 +7,8 @@ params.runtag = 'deepvariant'
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 //params.bed_dir = "/lustre/scratch118/humgen/resources/exome/Homo_sapiens/"
 
+include { imeta_study } from '../modules/imeta_study.nf'
+include { iget_study_cram } from '../modules/iget_study_cram.nf'
 include { sort_cram } from '../modules/sort_cram.nf' //params(run: true, outdir: params.outdir)
 include { markDuplicates } from '../modules/markDuplicates.nf' //params(run: true, outdir: params.outdir)
 include { coord_sort_cram } from '../modules/coord_sort_cram.nf' //params(run: true, outdir: params.outdir)
@@ -20,19 +22,35 @@ workflow {
     if (params.run_deepvariant) {
 	
 
-	ch_cram_file = Channel
-		.fromPath(params.cram_fofn)
-		.splitText()
+	//ch_cram_file = Channel
+	//	.fromPath(params.cram_fofn)
+	//	.splitText()
 		//.take(1)
 		//.view()
      main:
         
         log.info "${params.ref_dir}"
+
+    if (params.run_mode == "study_id") {
+	imeta_study(Channel.from(params.study_id_mode.input_studies))
+	samples_irods_tsv = imeta_study.out.irods_samples_tsv
+	work_dir_to_remove = imeta_study.out.work_dir_to_remove }
+
+    iget_study_cram(
+        samples_irods_tsv
+            .map{study_id, samples_tsv -> samples_tsv}
+            .splitCsv(header: true, sep: '\t')
+            .map{row->tuple(row.study_id, row.sample, row.object)}
+            .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+            .take(1)
+            .dump()
+            .unique())
         
-	sort_cram(ch_cram_file)
-	markDuplicates(sort_cram.out)
-	coord_sort_cram(markDuplicates.out)
-	deepvariant(coord_sort_cram.out)
+	//sort_cram(iget_study_cram.out.study_sample_cram[2])
+	//markDuplicates(sort_cram.out)
+	//coord_sort_cram(markDuplicates.out)
+	//deepvariant(coord_sort_cram.out)
+	deepvariant(iget_study_cram.out.study_sample_cram[2])
      emit:
         my_data = deepvariant.out
         
