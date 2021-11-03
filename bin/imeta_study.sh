@@ -6,9 +6,10 @@ rm -f samples.tsv
 printf 'sample\tobject\tsample_supplier_name\tid_run\tis_paired_read\tstudy_id\tstudy\n' > samples.tsv
 
 jq --arg study_id $study_id -n '{avus: [
-       {attribute: "study_id", value: $study_id, o: "="}, 
+       {attribute: "type", value: "cram", o: "="}, 
        {attribute: "manual_qc", value: "1", o: "="}, 
-      {attribute: "target", value: "1", o: "="}]}' |\
+      {attribute: "target", value: "1", o: "="},
+      {attribute: "study_id", value: $study_id, o: "="}]}' |\
 baton-metaquery \
 		--zone seq --obj --avu |\
 jq '.[] as $a| 
