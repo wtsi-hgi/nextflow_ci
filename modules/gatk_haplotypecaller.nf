@@ -31,7 +31,7 @@ process gatk_haplotypecaller {
 
     script:
 """ 
-/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" HaplotypeCaller -I ${cram_file_sorted_dups_coord} -O ${cram_file_sorted_dups_coord}.g.vcf.gz -R /ref/hs38DH.fa -L /bed/Twist/Twist_Human_Core_Exome_BI-CTR_padded_merged.bed -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 -ERC GVCF -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation
+/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" HaplotypeCaller -I ${cram_file_sorted_dups_coord} -O ${cram_file_sorted_dups_coord}.g.vcf.gz -R /ref/hs38DH.fa -L /bed/Twist/Twist_Human_Core_Exome_BI-CTR_padded_merged.interval_list -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 -ERC GVCF -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation
 """
 }
 
