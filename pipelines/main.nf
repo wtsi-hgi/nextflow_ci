@@ -13,7 +13,7 @@ include { sort_cram } from '../modules/sort_cram.nf' //params(run: true, outdir:
 include { markDuplicates } from '../modules/markDuplicates.nf' //params(run: true, outdir: params.outdir)
 include { coord_sort_cram } from '../modules/coord_sort_cram.nf' //params(run: true, outdir: params.outdir)
 include { deepvariant } from '../modules/deepvariant.nf' //params(run: true, outdir: params.outdir)
-//include { deepvariant } from '../modules/gatk_haplotypecaller' //params(run: true, outdir: params.outdir)
+include { gatk_haplotypecaller } from '../modules/gatk_haplotypecaller' //params(run: true, outdir: params.outdir)
 
 workflow {
 
@@ -51,6 +51,7 @@ workflow {
 	//coord_sort_cram(markDuplicates.out)
 	//deepvariant(coord_sort_cram.out)
 	deepvariant(iget_study_cram.out.study_sample_cram_crai)
+        gatk_haplotype_caller(iget_study_cram.out.study_sample_cram_crai)
      emit:
         my_data = deepvariant.out
         

@@ -15,7 +15,7 @@ process deepvariant {
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
-    publishDir "${params.gVCF_output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
+    publishDir "${params.deepvariant_output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
     maxRetries 3
 
     when:
@@ -31,7 +31,7 @@ process deepvariant {
 
     script:
 """ 
-/opt/deepvariant/bin/run_deepvariant --model_type=WES --customized_model=/opt/models/ukb_wes/model.ckpt-22236 --ref=/ref/hs38DH.fa --reads=${cram_file_sorted_dups_coord} --output_vcf=${cram_file_sorted_dups_coord}.vcf.gz --output_gvcf=${cram_file_sorted_dups_coord}.g.vcf.gz --intermediate_results_dir ./tmp --num_shards=1 --regions=/bed_files/All_Exon_V5/GRCh38/S04380110_Padded_merged.bed
+/opt/deepvariant/bin/run_deepvariant --model_type=WES --customized_model=/opt/models/ukb_wes/model.ckpt-22236 --ref=/ref/hs38DH.fa --reads=${cram_file_sorted_dups_coord} --output_vcf=${cram_file_sorted_dups_coord}.vcf.gz --output_gvcf=${cram_file_sorted_dups_coord}.g.vcf.gz --intermediate_results_dir ./tmp --num_shards=1 --regions=/bed_files/Twist/Twist_Human_Core_Exome_BI-CTR_padded_merged.bed
 """
 }
 
