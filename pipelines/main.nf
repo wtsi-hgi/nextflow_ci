@@ -51,7 +51,7 @@ workflow {
 	//coord_sort_cram(markDuplicates.out)
 	//deepvariant(coord_sort_cram.out)
 	deepvariant(iget_study_cram.out.study_sample_cram_crai)
-        gatk_haplotype_caller(iget_study_cram.out.study_sample_cram_crai)
+        gatk_haplotypecaller(iget_study_cram.out.study_sample_cram_crai)
      emit:
         my_data = deepvariant.out
         

@@ -15,11 +15,11 @@ process gatk_haplotypecaller {
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
-    publishDir "${params.haplotype_caller_output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
+    publishDir "${params.haplotypecaller_output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
     maxRetries 3
 
     when:
-    params.run_haplotype_caller
+    params.run_haplotypecaller
      
     input:
     tuple val(study_id), val(sample), path(cram_file_sorted_dups_coord), path(cram_file_sorted_dups_coord_index)
