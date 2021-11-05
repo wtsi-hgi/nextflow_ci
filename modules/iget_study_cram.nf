@@ -14,8 +14,8 @@ process 'iget_study_cram' {
 
   script:
     """
-iget -K -f -I -v ${cram_irods_object} ${sample}
+iget -K -f -I -v ${cram_irods_object} ${sample}.cram
 # get index file if exists:
-iget -K -f -I -v ${cram_irods_object}.crai ${sample}.crai || true
+iget -K -f -I -v ${cram_irods_object}.crai ${sample}.cram.crai || true
    """
 }
