@@ -45,13 +45,17 @@ workflow {
             .take(1)
             .dump()
             .unique())
-        
-	//sort_cram(iget_study_cram.out.study_sample_cram[2])
-	//markDuplicates(sort_cram.out)
-	//coord_sort_cram(markDuplicates.out)
+    if (params.run_sort_cram) {    
+	sort_cram(iget_study_cram.out.study_sample_cram_crai)
+	markDuplicates(sort_cram.out.sorted_sample_cram)
+	coord_sort_cram(markDuplicates.out.markdup_sample_cram)
 	//deepvariant(coord_sort_cram.out)
-	deepvariant(iget_study_cram.out.study_sample_cram_crai)
-        gatk_haplotypecaller(iget_study_cram.out.study_sample_cram_crai)
+	deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
+        gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai) }
+    else {
+        deepvariant(iget_study_cram.out.study_sample_cram_crai)
+        gatk_haplotypecaller(iget_study_cram.out.study_sample_cram_crai) }
+  }  
      emit:
         my_data = deepvariant.out
         

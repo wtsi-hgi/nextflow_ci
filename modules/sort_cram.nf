@@ -22,10 +22,12 @@ process sort_cram {
     //params.run
      
     input:
-    path cram_file
+    tuple val(study_id), val(sample), path(cram_file), path(cram_file_index)
+    //path cram_file
 
     output:
-    path "${cram_file}.sorted"
+    tuple val(study_id), val(sample), path(cram_file), path("${cram_file}.sorted"), emit: sorted_sample_cram
+    //path "${cram_file}.sorted"
     //tuple file("${cram_file}.sorted"), emit: indexes
 
     script:

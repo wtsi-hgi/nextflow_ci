@@ -21,10 +21,12 @@ process coord_sort_cram {
     params.run_coord_sort_cram
      
     input:
-    path cram_file_sorted_dups
+    tuple val(study_id), val(sample), path(cram_file_sorted_dups)
+    //path cram_file_sorted_dups
 
     output:
-    tuple path("${cram_file_sorted_dups}.coord"), path("${cram_file_sorted_dups}.coord.bai")
+    tuple val(study_id), val(sample), path("*.cram"), path("*.crai"), emit: markdup_sample_cram_crai
+    //tuple path("${cram_file_sorted_dups}.coord"), path("${cram_file_sorted_dups}.coord.bai")
     //tuple file("${cram_file}.sorted"), emit: indexes
 
     script:
