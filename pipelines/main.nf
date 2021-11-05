@@ -59,7 +59,6 @@ workflow {
      emit:
         my_data = deepvariant.out
         
-    }
 }
 
 workflow.onError {
