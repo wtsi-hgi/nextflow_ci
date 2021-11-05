@@ -9,7 +9,7 @@ process markDuplicates {
     disk '20 GB'
     //time '100m'
     //queue 'normal'
-    container  = 'file:///software/hgi/containers/gatk-4.1.4.1.sif'
+    container  = 'file:///software/hgi/containers/gatk_4.2.2.0.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     //errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
