@@ -24,7 +24,7 @@ process markDuplicates {
     //path cram_file_sorted
 
     output:
-    tuple val(study_id), val(sample), path(cram_file), path("${cram_file_sorted}.dups"), emit: markdup_sample_cram
+    tuple val(study_id), val(sample), path("${cram_file_sorted}.dups"), emit: markdup_sample_cram
     path "${cram_file_sorted}.dups"
     //tuple file("${cram_file}.sorted"), emit: indexes
 
