@@ -25,7 +25,7 @@ process coord_sort_cram {
     //path cram_file_sorted_dups
 
     output:
-    tuple val(study_id), val(sample), path("*.cram"), path("*.crai"), emit: markdup_sample_cram_crai
+    tuple val(study_id), val(sample), path("${cram_file_sorted_dups}.coord"), path("${cram_file_sorted_dups}.coord.bai"), emit: markdup_sample_cram_crai
     //tuple path("${cram_file_sorted_dups}.coord"), path("${cram_file_sorted_dups}.coord.bai")
     //tuple file("${cram_file}.sorted"), emit: indexes
 
