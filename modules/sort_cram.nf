@@ -26,7 +26,7 @@ process sort_cram {
     //path cram_file
 
     output:
-    tuple val(study_id), val(sample), path(cram_file), path("${cram_file}.sorted"), emit: sorted_sample_cram
+    tuple val(study_id), val(sample), path("${cram_file}.sorted"), emit: sorted_sample_cram
     //path "${cram_file}.sorted"
     //tuple file("${cram_file}.sorted"), emit: indexes
 
