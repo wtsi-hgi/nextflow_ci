@@ -42,7 +42,7 @@ workflow {
             .splitCsv(header: true, sep: '\t')
             .map{row->tuple(row.study_id, row.sample, row.object)}
             .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
-            .take(1)
+            .take(100)
             .dump()
             .unique())
     if (params.run_sort_cram) {    
