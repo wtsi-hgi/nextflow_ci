@@ -12,7 +12,7 @@ process markDuplicates {
     container  = 'file:///software/hgi/containers/gatk_4.2.2.0.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
-    //errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
+    errorStrategy { task.attempt <= 3 ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
     maxRetries 3
 
