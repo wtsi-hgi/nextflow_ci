@@ -12,6 +12,7 @@ include { iget_study_cram } from '../modules/iget_study_cram.nf'
 include { sort_cram } from '../modules/sort_cram.nf' //params(run: true, outdir: params.outdir)
 include { markDuplicates } from '../modules/markDuplicates.nf' //params(run: true, outdir: params.outdir)
 include { coord_sort_cram } from '../modules/coord_sort_cram.nf' //params(run: true, outdir: params.outdir)
+include { bam_to_cram } from '../modules/bam_to_cram.nf' //params(run: true, outdir: params.outdir)
 include { deepvariant } from '../modules/deepvariant.nf' //params(run: true, outdir: params.outdir)
 include { gatk_haplotypecaller } from '../modules/gatk_haplotypecaller' //params(run: true, outdir: params.outdir)
 
@@ -49,6 +50,7 @@ workflow {
 	sort_cram(iget_study_cram.out.study_sample_cram_crai)
 	markDuplicates(sort_cram.out.sorted_sample_cram)
 	coord_sort_cram(markDuplicates.out.markdup_sample_cram)
+        bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
 	//deepvariant(coord_sort_cram.out)
 	deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
         gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai) }
