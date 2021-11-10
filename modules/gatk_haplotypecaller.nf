@@ -5,7 +5,7 @@
 
 process gatk_haplotypecaller {
     //memory '8G'
-    //tag "$cram_file"
+    tag "$sample"
     cpus 2
     //disk '20 GB'
     //time '100m'

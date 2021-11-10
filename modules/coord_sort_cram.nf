@@ -4,7 +4,7 @@
 
 process coord_sort_cram {
     //memory '12G'
-    tag "$cram_file"
+    tag "$sample"
     //cpus 1
     disk '20 GB'
     //time '100m'

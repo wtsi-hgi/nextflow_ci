@@ -4,7 +4,7 @@
 
 process markDuplicates {
     memory '8G'
-    //tag "$cram_file"
+    tag "$sample"
     //cpus 1
     disk '20 GB'
     //time '100m'
