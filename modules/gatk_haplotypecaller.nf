@@ -15,7 +15,7 @@ process gatk_haplotypecaller {
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
-    publishDir "${params.haplotypecaller_output_dir}", mode: 'copy', overwrite: true, pattern: "*gz*"
+    publishDir "${params.haplotypecaller_output_dir}", mode: 'copy', overwrite: true, pattern: "*gatk.g.vcf.gz*"
     maxRetries 3
 
     when:
@@ -31,7 +31,7 @@ process gatk_haplotypecaller {
 
     script:
 """ 
-/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" HaplotypeCaller -I ${cram_file_sorted_dups_coord} -O ${cram_file_sorted_dups_coord}.g.vcf.gz -R /ref/hs38DH.fa -L /bed_files/Twist/Twist_Human_Core_Exome_BI-CTR_padded_merged.interval_list -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 -ERC GVCF -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation
+/gatk/gatk --java-options "-Xms6g -Xmx6g  -XX:+UseSerialGC" HaplotypeCaller -I ${cram_file_sorted_dups_coord} -O ${cram_file_sorted_dups_coord}.gatk.g.vcf.gz -R /ref/hs38DH.fa -L /bed_files/Twist/Twist_Human_Core_Exome_BI-CTR_padded_merged.interval_list -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 -ERC GVCF -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation
 """
 }
 
