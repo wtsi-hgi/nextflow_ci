@@ -15,7 +15,7 @@ process coord_sort_cram {
     // errorStrategy 'terminate'
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
-    publishDir "${params.cram_output_dir}", mode: "${params.copy_mode}"
+    //publishDir "${params.cram_output_dir}", mode: "${params.copy_mode}"
     maxRetries 3
 
     when:
