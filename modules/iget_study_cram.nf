@@ -1,6 +1,6 @@
 process 'iget_study_cram' {
     tag "$sample"
-    publishDir "${params.cram_output_dir}", mode: "${params.copy_mode}"
+    //publishDir "${params.cram_output_dir}", mode: "${params.copy_mode}"
     
     when: 
     params.run_iget_study_cram
