@@ -22,7 +22,7 @@ process sort_cram {
     //params.run
      
     input:
-    tuple val(study_id), val(sample), path(cram_file)
+    tuple val(study_id), val(sample), path(cram_file), path(cram_file_index)
     //path cram_file
 
     output:
