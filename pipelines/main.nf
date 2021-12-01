@@ -69,7 +69,7 @@ workflow {
            deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
            gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
         }
-        else if (params.sort_cram){
+        else if (params.run_sort_cram){
            sort_cram(cram_file)
            markDuplicates(sort_cram.out.sorted_sample_cram)
            coord_sort_cram(markDuplicates.out.markdup_sample_cram)
