@@ -55,9 +55,10 @@ workflow {
         cram_file = Channel
                 .fromPath(params.tsv_file)
                 .splitCsv(header: true, sep: '\t')
-                .map{row->tuple(row.study_id, row.sample, row.object)}
+                .map{row->tuple(row.study_id, row.sample, row.object, row.object_index)}
                 .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
                 .take(params.samples_to_process)
+                .dump()
                 //.view()
     }
 
