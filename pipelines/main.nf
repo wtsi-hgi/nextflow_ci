@@ -22,12 +22,16 @@ workflow {
 
     if (params.run_deepvariant) {
 	
-
-	//ch_cram_file = Channel
-	//	.fromPath(params.cram_fofn)
-	//	.splitText()
-		//.take(1)
+//    if (params.tsv_file) {
+//	ch_cram_file = Channel
+//		.fromPath(params.tsv_file)
+//		.splitCsv(header: true, sep: '\t')
+//                .map{row->tuple(row.study_id, row.sample, row.object)}
+//                .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+//		.take(params.samples_to_process)
 		//.view()
+//    }
+
      main:
         
         log.info "${params.ref_dir}"
@@ -35,32 +39,52 @@ workflow {
     if (params.run_mode == "study_id") {
 	imeta_study(Channel.from(params.study_id_mode.input_studies))
 	samples_irods_tsv = imeta_study.out.irods_samples_tsv
-	work_dir_to_remove = imeta_study.out.work_dir_to_remove }
+	work_dir_to_remove = imeta_study.out.work_dir_to_remove 
 
-    iget_study_cram(
-        samples_irods_tsv
-            .map{study_id, samples_tsv -> samples_tsv}
-            .splitCsv(header: true, sep: '\t')
-            .map{row->tuple(row.study_id, row.sample, row.object)}
-            .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
-            .take(params.samples_to_process)
-            .dump()
-            .unique())
-    if (params.run_sort_cram) {    
-	sort_cram(iget_study_cram.out.study_sample_cram_crai)
-	markDuplicates(sort_cram.out.sorted_sample_cram)
-	coord_sort_cram(markDuplicates.out.markdup_sample_cram)
-        bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
-	//deepvariant(coord_sort_cram.out)
-	deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
-        gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai) }
-    else {
-        deepvariant(iget_study_cram.out.study_sample_cram_crai)
-        gatk_haplotypecaller(iget_study_cram.out.study_sample_cram_crai) }
-  }  
+        cram_file = iget_study_cram(
+                         samples_irods_tsv
+                            .map{study_id, samples_tsv -> samples_tsv}
+                            .splitCsv(header: true, sep: '\t')
+                            .map{row->tuple(row.study_id, row.sample, row.object)}
+                            .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+                            .take(params.samples_to_process)
+                            .dump()
+                            .unique())
+    }
+    else if (params.tsv_file) {
+        cram_file = Channel
+                .fromPath(params.tsv_file)
+                .splitCsv(header: true, sep: '\t')
+                .map{row->tuple(row.study_id, row.sample, row.object)}
+                .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+                .take(params.samples_to_process)
+                //.view()
+    }
+
+        if (params.remap) {
+           remap_cram(cram_file) 
+           markDuplicates(remap_cram.out.sorted_sample_cram)
+           coord_sort_cram(markDuplicates.out.markdup_sample_cram)
+           bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
+           deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
+           gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
+        }
+        else if (params.sort_cram){
+           sort_cram(cram_file)
+           markDuplicates(sort_cram.out.sorted_sample_cram)
+           coord_sort_cram(markDuplicates.out.markdup_sample_cram)
+           bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
+           deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
+           gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
+        }
+        else {
+           deepvariant(cram_file)
+           gatk_haplotypecaller(cram_file)
+       }  
      emit:
         my_data = deepvariant.out
         
+   }
 }
 
 workflow.onError {
