@@ -9,7 +9,7 @@ process remap_cram {
     disk '20 GB'
     //time '100m'
     //queue 'normal'
-    clusterOptions = { "-M 18000 -R \"select[mem>=18000] rusage[mem=18000]\" -n4 -R \"span[hosts=1]\" -R \"select[model==Intel_Platinum]\"" }
+    clusterOptions = { "-M 18000 -n4 -R \"select[mem>=18000] rusage[mem=18000]\" -R \"span[hosts=1]\" -R \"select[model==Intel_Platinum]\"" }
     //container  = 'file:///software/hgi/containers/samtools_sambamba.sif'
     //containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'
