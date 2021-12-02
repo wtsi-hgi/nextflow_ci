@@ -9,7 +9,7 @@ process coord_sort_cram {
     disk '20 GB'
     //time '100m'
     //queue 'normal'
-    clusterOptions = { "-M 18000 -R \"select[mem>=18000] rusage[mem=18000]\" -R \"select[model==Intel_Platinum]\"" }
+    clusterOptions = { "-M 18000 -R \"select[mem>=18000] rusage[mem=18000]\" -R \"select[model==Intel_Platinuma || model==Intel_Platinumb || model==Intel_Platinumc || model==Intel_Platinumd || model==Intel_Platinume || model==Intel_Platinumf || model==Intel_Platinumg"]\"" }
     container  = 'file:///software/hgi/containers/sambamba_0.6.4.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind /tmp:/tmp"
     // errorStrategy 'terminate'

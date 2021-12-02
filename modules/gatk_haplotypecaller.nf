@@ -10,7 +10,7 @@ process gatk_haplotypecaller {
     //disk '20 GB'
     //time '100m'
     //queue 'normal'
-    clusterOptions = { "-M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==Intel_Platinum]\"" }
+    clusterOptions = { "-M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==Intel_Platinuma || model==Intel_Platinumb || model==Intel_Platinumc || model==Intel_Platinumd || model==Intel_Platinume || model==Intel_Platinumf || model==Intel_Platinumg"]\"" }
     container  = 'file:///software/hgi/containers/gatk_4.2.2.0.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
