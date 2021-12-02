@@ -16,6 +16,7 @@ process remap_cram {
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
     //publishDir "${params.outdir}/cram_index/", mode: 'symlink', overwrite: true, pattern: "${cram_file}.crai"
     maxRetries 3
+    stageInMode link
 
     when:
     params.remap
