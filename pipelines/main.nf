@@ -64,7 +64,7 @@ workflow {
 
         if (params.remap) {
            remap_cram(cram_file) 
-           markDuplicates(remap_cram.out.sorted_sample_cram)
+           markDuplicates(remap_cram.out.remapped_sample_cram)
            coord_sort_cram(markDuplicates.out.markdup_sample_cram)
            bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
            deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
