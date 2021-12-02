@@ -18,7 +18,7 @@ process remap_cram {
     maxRetries 3
 
     when:
-    params.remap_cram
+    params.remap
     //params.run
      
     input:
