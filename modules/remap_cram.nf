@@ -31,9 +31,8 @@ process remap_cram {
     //tuple file("${cram_file}.sorted"), emit: indexes
 
     script:
-""" 
-MYDIR=dirname \$(realpath ${cram_file})
-singularity run -B ${params.ref_dir}:${params.ref_dir} -B \$MYDIR:/home --pwd "/home" --no-home /software/hgi/containers/oqfe_remap.sif -1 /home/${cram_file} --sample ${sample} --cram-reference-fasta ${params.ref_dir}/hs38DH.fa -c -j 4
+"""
+singularity run -B ${params.ref_dir}:${params.ref_dir} -B \$PWD:/home --pwd "/home" --no-home /software/hgi/containers/oqfe_remap.sif -1 /home/${cram_file} --sample ${sample} --cram-reference-fasta ${params.ref_dir}/hs38DH.fa -c -j 4
 """
 }
 
