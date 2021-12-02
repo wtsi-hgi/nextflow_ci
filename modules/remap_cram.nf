@@ -2,7 +2,7 @@
 //params.ref_dir = "/lustre/scratch118/humgen/resources/ref/Homo_sapiens/HS38DH/"
 //    log.info "${params.ref_dir}"
 
-process sort_cram {
+process remap_cram {
     //memory '12G'
     tag "$sample"
     cpus 4

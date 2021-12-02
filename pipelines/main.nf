@@ -10,6 +10,7 @@ params.runtag = 'deepvariant'
 include { imeta_study } from '../modules/imeta_study.nf'
 include { iget_study_cram } from '../modules/iget_study_cram.nf'
 include { sort_cram } from '../modules/sort_cram.nf' //params(run: true, outdir: params.outdir)
+include { remap_cram } from '../modules/remap_cram.nf' //params(run: true, outdir: params.outdir)
 include { markDuplicates } from '../modules/markDuplicates.nf' //params(run: true, outdir: params.outdir)
 include { coord_sort_cram } from '../modules/coord_sort_cram.nf' //params(run: true, outdir: params.outdir)
 include { bam_to_cram } from '../modules/bam_to_cram.nf' //params(run: true, outdir: params.outdir)
