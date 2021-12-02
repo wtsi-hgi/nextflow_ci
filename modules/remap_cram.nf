@@ -27,7 +27,7 @@ process remap_cram {
     //path cram_file
 
     output:
-    tuple val(study_id), val(sample), path("${sample}.remapped.cram"), emit: remapped_sample_cram
+    tuple val(study_id), val(sample), path("${sample}.merged.bam"), emit: remapped_sample_bam
     //path "${cram_file}.sorted"
     //tuple file("${cram_file}.sorted"), emit: indexes
 
