@@ -91,6 +91,7 @@ def _get_memory(suffix='M',
     #                       open('/proc/meminfo').read())
     #if len(total_mem) != 1:
     #    raise Exception('Problem reading system memory from /proc/meminfo')
+    # The above code is replaced with the following to enable the correct allocation of memory for LSF execution
     total_mem = str(int(int(os.environ.get('LSB_CG_MEMLIMIT'),16) / 1024)).split()
 
     return float(fraction) * int(total_mem[0]) / shift
@@ -489,6 +490,9 @@ def main(forward_reads,
 
     # Untar the OQFE reference file
     #bwa_reference_index_path = _setup_reference(DEFAULT_REFERENCE_TAR_PATH)
+
+    # Instead of using the reference inside the container we will use the one specified to enable the conversion of the CRAM to BAM
+    # This will only work for remaping to the original reference which is our use case in this nextflow pipeline
     bwa_reference_index_path = cram_reference_fasta
 
     # 2. If the intput is list of pairs of FASTQ files, the pipeline starts with a for loop of BWA
@@ -511,6 +515,8 @@ def main(forward_reads,
         merge_bam(mapped_bams, merged_name, num_cores)
     else:
         os.rename(mapped_bams[0], merged_name)
+
+    # The Mark Duplicates module is not used in this pipeline as that step is already in the pipeline and we we prefer to use the nextflow MarkDuplicates module rather than the one inside the oqfe_remap.sif container
 
     #return merged_name
     #Run Picard Markduplicates and convert to CRAM
