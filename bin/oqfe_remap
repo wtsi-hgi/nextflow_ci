@@ -1,0 +1,536 @@
+#!/usr/bin/env python3.6
+from __future__ import print_function
+import os
+import argparse
+import subprocess
+import multiprocessing
+import re
+import glob
+import gzip
+
+DEFAULT_BWA_PARAMS = ['-Y', '-K', '100000000']
+
+SPLITS_PER_CORE = 2
+MEMORY_FRACTION = 0.75
+SAMBAMBA_MEMORY_FRACTION = 0.1
+READ_GROUP_PLATFORM = 'ILLUMINA'
+DEFAULT_REFERENCE_TAR_PATH = '/data/GRCh38_full_analysis_set_plus_decoy_hla.tar.gz'
+REQUIRED_READ_GROUP_TAGS = {'ID', 'PL', 'PU', 'SM', 'LB'}
+
+def _parse_args():
+    """
+    Parse the input arguments.
+
+    Output:
+        A Namespace object with the parsed arguments.
+    """
+    ap = argparse.ArgumentParser(description='Run Original Quality Functional Equivalent Pipeline')
+
+    ap.add_argument('-1', '--forward-reads', nargs='+',
+                    help='Forward reads',
+                    required=True)
+
+    ap.add_argument('-2', '--reverse-reads', nargs='+',
+                    help='Reverse reads',
+                    required=False)
+
+    ap.add_argument('--sample',
+                    help='Sample ID',
+                    default='',
+                    required=True)
+
+    ap.add_argument('-r', '--cram-reference-fasta',
+                    help='The reference genome fasta used for CRAM, uncompressed.'
+                         'This program take this input when taking CRAM as input',
+                    required=False)
+
+    ap.add_argument('-c', '--reuse-cram-header',
+                    help='Reuse CRAM header for readgroup (RG) info?',
+                    default=False,
+                    action='store_true')
+
+    ap.add_argument('-j', '--num-cores',
+                    help='Number of cores to use',
+                    type=int,
+                    required=False,
+                    default=multiprocessing.cpu_count())
+
+    ap.add_argument('-d', '--optical-duplicate-pixel-distance',
+                    help='Optical duplicate pixel distance',
+                    type=int,
+                    required=False,
+                    default=2500)
+
+    return ap.parse_args()
+
+
+def _get_memory(suffix='M',
+                fraction=1.0):
+    """
+    Get the total amount of memory available in the operating environment.
+
+    Args:
+        suffix (str): A suffix indicating whether the returned memory should
+                      be specified in KB, MB, or GB.  Valid choices are
+                      K, M, or G.
+        fraction (float): An optional value specifying the fraction of total
+                          memory to calculate.
+    """
+    if suffix == 'K':
+        shift = 1
+    elif suffix == 'M':
+        shift = 1 << 10
+    elif suffix == 'G':
+        shift = 1 << 20
+    else:
+        raise Exception(
+            'Unknown memory suffix {}.  Please choose from K, M, or G.'.format(suffix))
+
+    # Calc amount of memory available for gatk and Picard.
+    #total_mem = re.findall('^MemTotal:[\\s]*([0-9]*) kB',
+    #                       open('/proc/meminfo').read())
+    #if len(total_mem) != 1:
+    #    raise Exception('Problem reading system memory from /proc/meminfo')
+    total_mem = str(int(int(os.environ.get('LSB_CG_MEMLIMIT'),16) / 1024)).split()
+
+    return float(fraction) * int(total_mem[0]) / shift
+
+
+def _run_cmd(cmd):
+    """
+    Print and run the given command
+
+    Args:
+        cmd (string or list): The command to run
+    """
+    if isinstance(cmd, list):
+        cmd_txt = subprocess.list2cmdline(cmd)
+    else:
+        cmd_txt = cmd
+    print(cmd_txt, flush=True)
+    subprocess.check_call(cmd)
+    print("Finished", cmd_txt, flush=True)
+
+
+def _setup_reference(reference_tar_path):
+    """
+    Untar the reference file (GRCh38_full_analysis_set_plus_decoy_hla.tar.gz) for OQFE pipeline
+    """
+
+    reference_index_name = os.path.basename(reference_tar_path).replace('.tar.gz', '')
+    reference_index_folder = './{}'.format(reference_index_name)
+    os.makedirs(reference_index_folder, exist_ok=True)
+
+    reference_index_path = '{}/{}.fa'.format(reference_index_folder, reference_index_name)
+
+    # Untar the reference tar file
+    cmd = ['tar', '-zxvf', reference_tar_path,
+           '-C', reference_index_folder, '--no-same-owner']
+    _run_cmd(cmd)
+    # Clean up space used for tarred reference
+    #cmd = ['rm', '-rf', reference_tar_path]
+    #_run_cmd(cmd)
+
+    return reference_index_path
+
+
+def cram_to_fastqs(cram_path,
+                   cram_reference_fasta,
+                   sample,
+                   num_cores,
+                   reuse_cram_header=False):
+    """
+    Runs samtools split to first split the CRAM by read group info into BAM, then
+    runs samtools sort -n and samtools fastq to convert each BAM in to FASTQ files
+
+    Args:
+        cram_path (str): The path to the CRAM file.
+        cram_reference_fasta (str): The path to the reference fasta.
+    """
+
+    def _get_rg_info(bam_path):
+        cmd = ['samtools', 'view', '-H', bam_path]
+        cmd_txt = subprocess.list2cmdline(cmd)
+        samtools_view_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        cmd = ['grep', '^@RG']
+        cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+        grep_proc = subprocess.Popen(cmd, stdin=samtools_view_proc.stdout,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print (cmd_txt)
+        rg_info = grep_proc.communicate()[0].rstrip().decode()
+
+        # Confirm that all read_group_tags presents (including "sample" needs to be defined)
+        bam_rg_set = set([x.split(':')[0] for x in rg_info.split('\t')])
+        if not REQUIRED_READ_GROUP_TAGS.issubset(bam_rg_set):
+            raise Exception('Cannot find all required readgroup tags ({}) in {}.'.
+                            format(','.join(REQUIRED_READ_GROUP_TAGS), bam_path))
+
+        # Reformat the RG tags for BWA-MEM to take for mapping
+        rg_info = rg_info.replace('\t', '\\t')
+        sample = [i.split(':')[1] for i in rg_info.rstrip().split('\\t') if i.startswith('SM:')][0]
+
+        return rg_info, sample
+
+
+    # First, split the CRAM file into BAM files by read group info
+    cmd = ['samtools', 'split', '--threads', str(num_cores),
+            '--reference', cram_reference_fasta, cram_path]
+    _run_cmd(cmd)
+
+    forward_reads = []
+    reverse_reads = []
+    rg_infos = []
+    samples = []
+    cram_base = os.path.basename(cram_path).replace('.cram','')
+    bam_path_list = glob.glob('./{}_*.bam'.format(cram_base))
+    for bam_path in bam_path_list:
+        rg_info = None
+        if reuse_cram_header:
+            print (('Reuse CRAM header for RG is turned on. ' + \
+                    'Ignoring input sample name: {}').format(sample))
+            rg_info, sample = _get_rg_info(bam_path)
+        bam_base = os.path.splitext(bam_path)[0]
+        first_read_fn = '{}_R1.fastq'.format(bam_base)
+        second_read_fn = '{}_R2.fastq'.format(bam_base)
+
+        cmd = ['samtools', 'sort', '--threads', str(num_cores),
+               '-n', bam_path]
+        cmd_txt = subprocess.list2cmdline(cmd)
+        samtools_sort_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+        cmd = ['samtools', 'fastq', '-Ot', '--threads', str(num_cores),
+               '-1', first_read_fn, '-2', second_read_fn, '-']
+        cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+        print (cmd_txt)
+        samtools_fastq_proc = subprocess.Popen(cmd, stdin=samtools_sort_proc.stdout)
+        samtools_fastq_proc.communicate()
+
+        rg_infos.append(rg_info)
+        samples.append(sample)
+        forward_reads.append('{}_R1.fastq'.format(bam_base))
+        reverse_reads.append('{}_R2.fastq'.format(bam_base))
+
+    # Confirm all sample names are all the same
+    if len(set(samples)) > 1:
+        raise Exception('Not all sample names in the CRAM file are the same.')
+
+    return forward_reads, reverse_reads, rg_infos, samples[0]
+
+
+def run_bwa(bwa_reference_index_path,
+            forward_read_path,
+            sample,
+            platform,
+            num_cores,
+            read_group_string=None,
+            reverse_read_path=None):
+    """
+    Runs BWA-MEM to map the reads provided in the FASTQ files
+    against the provided reference genome.
+
+    Args:
+        bwa_reference_index_path (string): A path to a tarball that contains the
+            BWA index files for our reference genome. We expect that the
+            given reference index files names will match the filename for
+            the provided reference FASTA.
+        forward_reads (string): A path to the forward reads FASTQ file.
+        sample (string): The name to use for the sample read group.
+        platform (string): The platform to use for the platform read group.
+        num_cores (int): Number of cores to use for BWA-MEM
+        reverse_read_path (string - optional): A path to the reverse reads
+            FASTQ file.
+    """
+
+    def _get_readgroup_info(forward_read_path,
+                            sample,
+                            read_group_platform):
+        """
+        Creates a string for the read group information.  The string will
+        contain entries for ID, platform (PL), platform unit (PU), sample (SM), and library (LB),
+        name. E.g. :"@A00861:122:HT5JJDSXX:1:1101:1000:11083 xxxx"
+
+          * The sample name will be taken from the sample input (e.g. "sample_name")
+          * The platform will be taken from the platform input (e.g. "ILLUMINA")
+          * ID will be the sample name with flowcell lane (e.g. "sample_name.1")
+          * The platform unit will be flowcell ID and flowcell lane (e.g. "HT5JJDSXX.1")
+          * The library will be flowcell ID (e.g. "HT5JJDSXX")
+
+        Args:
+            forward_read_path (string): path to the FASTQ file
+            sample (string): The sample name to use for the read group information
+            read_group_platform (string): The platform to use for the read group
+                information
+
+        Output:
+            A string with the read group information for use with BWA-MEM.
+        """
+        if forward_read_path.endswith('.gz'):
+            with gzip.open(forward_read_path, 'rt') as f:
+                sequence_identifiers = f.readline().split(':')
+        elif forward_read_path.endswith('fastq') or forward_read_path.endswith('fq'):
+            with open(forward_read_path, 'r') as f:
+                sequence_identifiers = f.readline().split(':')
+        else:
+            raise Exception('Unable to determine input filetype (".gz", ".fastq", or ".fq")')
+
+        flowcell_id = sequence_identifiers[2]
+        flowcell_lane = sequence_identifiers[3]
+
+        if not flowcell_id or not flowcell_lane:
+            raise Exception(('Problem getting RG ID or RG LB information ' + \
+                             'from FASTQ input {}').format(forward_read_path))
+
+        # Helpful description of read group information here:
+        # https://gatkforums.broadinstitute.org/gatk/discussion/6472/read-groups
+        # We'll make a read group id that is just the sample with _1
+        read_group_id = '{}.{}'.format(sample, flowcell_lane)
+        # Use the read group id as the platform unit value as well
+        read_group_pu = '{}.{}'.format(flowcell_id, flowcell_lane)
+        # For the library, just reuse the sample name
+        read_group_library = flowcell_id
+
+        # Now set the string to be used by bwa for setting read group information
+        read_group_string = ('@RG\\tID:{read_group_id}\\tPL:{read_group_platform}\\t' + \
+                             'PU:{read_group_pu}\\tSM:{sample}\\tLB:{read_group_library}')
+        read_group_string = read_group_string.format(read_group_id=read_group_id,
+                                                     read_group_platform=read_group_platform,
+                                                     read_group_pu=read_group_pu,
+                                                     sample=sample,
+                                                     read_group_library=read_group_library)
+
+        return read_group_string
+
+
+    # Set mapped BAM filename
+    forward_read_name = os.path.basename(forward_read_path) \
+            .replace('.fastq.gz', '') \
+            .replace('.fq.gz', '')
+    bam_fn = '{}_mapped.bam'.format(forward_read_name)
+
+    # Start the bwa mapping
+    if not read_group_string:
+        read_group_string = _get_readgroup_info(forward_read_path, sample, platform)
+
+    cmd = ['bwa', 'mem', '-t', str(num_cores),
+           bwa_reference_index_path, forward_read_path]
+    if reverse_read_path is not None:
+        cmd += [reverse_read_path]
+    cmd += ['-R', read_group_string]
+    cmd += DEFAULT_BWA_PARAMS
+    cmd_txt = subprocess.list2cmdline(cmd)
+    bwa_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+    # Pipe that through samblaster for addMateTags
+    # (Add MC and MQ tags to all output paired-end SAM lines.)
+    # and Accept duplicate marks already in input file
+    # instead of looking for duplicates in the input.
+    cmd = ['samblaster', '--addMateTags', '-a']
+    cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+    samblaster_proc = subprocess.Popen(cmd, stdin=bwa_proc.stdout, stdout=subprocess.PIPE)
+
+    # Pipe it through samtools view with S: assume SAM input
+    # b: BAM, h: include header, u: uncompressed BAM
+    cmd = ['samtools', 'view', '-Sbhu', '-']
+    cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+    samtools_view_proc = subprocess.Popen(cmd, stdin=samblaster_proc.stdout, stdout=subprocess.PIPE)
+
+    # Pipe it to sambamba to sort mapped reads using sambamba sort
+    cmd = ['sambamba_v0.6.4', 'sort', '-n', '-t', str(num_cores),
+           '--tmpdir', '/tmp', '-o', bam_fn, '/dev/stdin']
+    cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+
+    print(cmd_txt, flush=True)
+    sambamba_sort_proc = subprocess.Popen(cmd, stdin=samtools_view_proc.stdout)
+    sambamba_sort_proc.communicate()
+
+
+
+    return bam_fn
+
+
+def merge_bam(bam_fn_list,
+              ofn,
+              num_cores):
+    """
+    Merge list of mapped BAMs into one BAM
+
+    Args:
+        bam_fn (list of string): The path to the BAMs to be merged.
+        ofn (string): Merged BAM name.
+        num_cores (int): The number of cores to use for parallelization.
+
+    Output:
+        A string providing a path to the merged and mapped BAM file
+    """
+    cmd = ['ls'] + bam_fn_list
+    cmd_txt = subprocess.list2cmdline(cmd)
+    list_of_bam_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+    # Pipe the list of BAM files into xargs
+    cmd = ['xargs', 'sambamba_v0.6.4', 'merge', '-t', str(num_cores), ofn]
+    cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+
+    print(cmd_txt, flush=True)
+    xargs_sambamba_merge_proc = subprocess.Popen(cmd, stdin=list_of_bam_proc.stdout)
+    xargs_sambamba_merge_proc.communicate()
+
+
+    return ofn
+
+
+def run_picard_markduplicates(bam_fn,
+                              reference_fasta,
+                              sample,
+                              num_cores,
+                              optical_duplicate_pixel_distance):
+    """
+    Run Picard's MarkDuplicates on the mapped BAM file, sort and convert to CRAM.
+
+    Args:
+        bam_fn (string): The path to the mapped BAM.
+        reference_fasta (string): The path to the reference genome FASTA.
+        sample (string): The sample name.
+        num_cores (int): The number of cores to use for parallelization.
+        optical_duplicate_pixel_distance (int): the maximum offset between two duplicate clusters in order to consider them optical duplicates
+
+    Output:
+        A string providing a path to the markdupped and coordinate-sorted CRAM file.
+    """
+
+    output_folder = './output'
+    os.makedirs(output_folder, exist_ok=True)
+
+    markdup_metrics_txt_fn = '{}/{}.oqfe.markdup_stats.txt'.format(output_folder, sample)
+    # First, run picard MarkDupelicates to marke duplicated reads
+    mem_available = _get_memory('M', MEMORY_FRACTION)
+    java_options = '-Xmx{}m'.format(int(mem_available))
+    cmd = ['java', '-jar', java_options, '/Picard/picard.jar', 'MarkDuplicates',
+           'I={}'.format(bam_fn), 'O=/dev/stdout',
+           'METRICS_FILE={}'.format(markdup_metrics_txt_fn),
+           'ASSUME_SORT_ORDER=queryname', 'QUIET=true', 'TMP_DIR=/tmp',
+           'OPTICAL_DUPLICATE_PIXEL_DISTANCE={}'.format(optical_duplicate_pixel_distance)]
+    cmd_txt = subprocess.list2cmdline(cmd)
+    picard_markdup_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+    # Pipe that through sambamba_v0.6.4 for sorting
+    markdup_bam_fn = '{}.markdup.bam'.format(sample)
+    sambamba_memory = _get_memory('M', SAMBAMBA_MEMORY_FRACTION)
+    cmd = ['sambamba_v0.6.4', 'sort', '-t', str(num_cores),
+           '-m', '{}MB'.format(int(sambamba_memory)),
+           '--tmpdir', '/tmp', '-o', markdup_bam_fn, '/dev/stdin']
+    cmd_txt += ' | {}'.format(subprocess.list2cmdline(cmd))
+
+    print(cmd_txt, flush=True)
+    sambamba_sort_proc = subprocess.Popen(cmd, stdin=picard_markdup_proc.stdout)
+    sambamba_sort_proc.communicate()
+
+    # Convert to CRAM and generate index
+    markdup_cram_fn = '{}/{}.oqfe.cram'.format(output_folder, sample)
+    markdup_crai_fn = '{}/{}.oqfe.crai'.format(output_folder, sample)
+    cmd = ['samtools', 'view', '-C', '-T', reference_fasta,
+           '--threads', str(num_cores),
+           '-o', markdup_cram_fn, markdup_bam_fn]
+    _run_cmd(cmd)
+
+    cmd = ['samtools', 'index', markdup_cram_fn, markdup_crai_fn]
+    _run_cmd(cmd)
+
+    return markdup_cram_fn, markdup_crai_fn, markdup_metrics_txt_fn
+
+
+def main(forward_reads,
+         reverse_reads,
+         sample,
+         num_cores,
+         optical_duplicate_pixel_distance,
+         reuse_cram_header=False,
+         cram_reference_fasta=None):
+    """
+    Runs OQFE pipeline
+
+    Args:
+        forward_reads (list:str): A list of strings with paths to forward reads FASTQ files
+        reverse_reads (list:str): A list of strings with paths to reverse reads FASTQ files
+        sample (str): A string, with sample name
+        num_cors (int): An integer, describing number of cores available
+        optical_duplicate_pixel_distance (int): the maximum offset between two duplicate clusters in order to consider them optical duplicates
+        reuse_cram_header (boolean): Determine using CRAM header for RG tags or not
+        cram_reference_fasta: A string, for path to CRAM decompressions' FASTQ
+    Output:
+        markdup_cram_fn (str): A string, with path to OQFE CRAM
+        markdup_crai_fn (str): A string, with path to OQFE CRAM index
+        markdup_metrics_txt_fn (str): A string, with path to markdup metrics
+    """
+
+    # If it is CRAM, it'd need to also be a reference for decompression.
+    # Optionally, for RG, it can use the CRAM header for RG
+    # (sample name input will be ignored and would be parsed from RG info)
+    if forward_reads[0].endswith('.cram'):
+        print ('Input a CRAM file. Performing CRAM -> FASTQ -> CRAM.')
+        if cram_reference_fasta is None:
+            raise Exception(('Unknown reference for decompressing {}. ' + \
+                             'Please provide a reference FASTA.').format(forward_reads[0]))
+        # CRAM -> FASTQs
+        forward_reads, reverse_reads, rg_infos, sample = \
+            cram_to_fastqs(forward_reads[0],
+                           cram_reference_fasta,
+                           sample,
+                           num_cores,
+                           reuse_cram_header)
+    else:
+        print(('Input not a CRAM file, assuming input is FASTQ paired-end read. ' + \
+               'Performing FASTQ -> CRAM.'), flush=True)
+        print(('Ignoring reuse_cram_header flag. Will infer RG tags ' + \
+                'from FASTQ\'s sequence identifiers.'), flush=True)
+        rg_infos = [None] * len(forward_reads)
+
+    if len(forward_reads) != len(reverse_reads):
+        raise Exception('Number of FASTQ files are not paired between forward and reverse reads')
+
+    # Untar the OQFE reference file
+    #bwa_reference_index_path = _setup_reference(DEFAULT_REFERENCE_TAR_PATH)
+    bwa_reference_index_path = cram_reference_fasta
+
+    # 2. If the intput is list of pairs of FASTQ files, the pipeline starts with a for loop of BWA
+    mapped_bams = []
+    for first_read_fn, second_read_fn, read_group_string in \
+        zip(forward_reads, reverse_reads, rg_infos):
+        bam_fn = run_bwa(bwa_reference_index_path,
+                         first_read_fn,
+                         sample,
+                         READ_GROUP_PLATFORM,
+                         num_cores,
+                         read_group_string,
+                         second_read_fn)
+        mapped_bams.append(bam_fn)
+
+    # 3. If multiple BAMs, merge all BAMs
+    merged_name = '{}.merged.bam'.format(sample)
+    # Merge all bams into one
+    if len(mapped_bams) > 1:
+        merge_bam(mapped_bams, merged_name, num_cores)
+    else:
+        os.rename(mapped_bams[0], merged_name)
+
+    #return merged_name
+    #Run Picard Markduplicates and convert to CRAM
+    #markdup_cram_fn, markdup_crai_fn, markdup_metrics_txt_fn = \
+    #   run_picard_markduplicates(merged_name,
+    #                              bwa_reference_index_path,
+    #                              sample, num_cores,
+    #                              optical_duplicate_pixel_distance)
+
+    #return markdup_cram_fn, markdup_crai_fn, markdup_metrics_txt_fn
+    #return merged_name
+
+
+if __name__ == '__main__':
+    args = _parse_args()
+
+    main(args.forward_reads,
+         args.reverse_reads,
+         args.sample,
+         args.num_cores,
+         args.optical_duplicate_pixel_distance,
+         args.reuse_cram_header,
+         args.cram_reference_fasta)
