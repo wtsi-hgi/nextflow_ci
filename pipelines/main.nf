@@ -40,7 +40,7 @@ workflow {
 
     if (params.run_mode == "study_id") {
         if (params.study_id_mode.input_study_lanes) {
-            imeta_study_lane(params.study_id_mode.input_studies, params.study_id_mode.input_study_lanes)
+            imeta_study_lane( [params.study_id_mode.input_studies, params.study_id_mode.input_study_lanes] )
             samples_irods_tsv = imeta_study.out.irods_samples_tsv
             work_dir_to_remove = imeta_study.out.work_dir_to_remove
         }
