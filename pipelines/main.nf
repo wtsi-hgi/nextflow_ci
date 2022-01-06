@@ -8,6 +8,7 @@ params.runtag = 'deepvariant'
 //params.bed_dir = "/lustre/scratch118/humgen/resources/exome/Homo_sapiens/"
 
 include { imeta_study } from '../modules/imeta_study.nf'
+include { imeta_study_lane } from '../modules/imeta_study_lane.nf'
 include { iget_study_cram } from '../modules/iget_study_cram.nf'
 include { sort_cram } from '../modules/sort_cram.nf' //params(run: true, outdir: params.outdir)
 include { remap_cram } from '../modules/remap_cram.nf' //params(run: true, outdir: params.outdir)
