@@ -38,10 +38,16 @@ workflow {
         log.info "${params.ref_dir}"
 
     if (params.run_mode == "study_id") {
-	imeta_study(Channel.from(params.study_id_mode.input_studies))
-	samples_irods_tsv = imeta_study.out.irods_samples_tsv
-	work_dir_to_remove = imeta_study.out.work_dir_to_remove 
-
+        if (params.study_id_mode.input_study_lanes) {
+            imeta_study_lane(Channel.from(params.study_id_mode.input_studies), params.study_id_mode.input_study_lanes)
+            samples_irods_tsv = imeta_study.out.irods_samples_tsv
+            work_dir_to_remove = imeta_study.out.work_dir_to_remove
+        }
+	else{
+            imeta_study(Channel.from(params.study_id_mode.input_studies))
+	    samples_irods_tsv = imeta_study.out.irods_samples_tsv
+	    work_dir_to_remove = imeta_study.out.work_dir_to_remove
+        } 
         cram_file = iget_study_cram(
                          samples_irods_tsv
                             .map{study_id, samples_tsv -> samples_tsv}
