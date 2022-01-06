@@ -49,15 +49,15 @@ workflow {
 	    samples_irods_tsv = imeta_study.out.irods_samples_tsv
 	    work_dir_to_remove = imeta_study.out.work_dir_to_remove
         } 
-        cram_file = iget_study_cram(
-                         samples_irods_tsv
-                            .map{study_id, samples_tsv -> samples_tsv}
-                            .splitCsv(header: true, sep: '\t')
-                            .map{row->tuple(row.study_id, row.sample, row.object)}
-                            .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
-                            .take(params.samples_to_process)
-                            .dump()
-                            .unique())
+        iget_study_cram(
+            samples_irods_tsv
+                .map{study_id, samples_tsv -> samples_tsv}
+                .splitCsv(header: true, sep: '\t')
+                .map{row->tuple(row.study_id, row.sample, row.object)}
+                .filter { it[2] =~ /.cram$/ } // Need to check for bam too?
+                .take(params.samples_to_process)
+                .dump()
+                .unique())
     }
     else if (params.tsv_file) {
         cram_file = Channel
@@ -79,17 +79,24 @@ workflow {
            gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
         }
         else if (params.run_sort_cram){
-           sort_cram(cram_file)
-           markDuplicates(sort_cram.out.sorted_sample_cram)
-           coord_sort_cram(markDuplicates.out.markdup_sample_cram)
-           bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
-           deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
-           gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
-        }
-        else {
-           deepvariant(cram_file)
-           gatk_haplotypecaller(cram_file)
-       }  
+                 if (params.tsv_file) {
+                     sort_cram(cram_file) }
+                 else {
+                     sort_cram(iget_study_cram.out.study_sample_cram_crai)}
+                 markDuplicates(sort_cram.out.sorted_sample_cram)
+                 coord_sort_cram(markDuplicates.out.markdup_sample_cram)
+                 bam_to_cram(coord_sort_cram.out.markdup_sample_cram_crai)
+                 deepvariant(coord_sort_cram.out.markdup_sample_cram_crai)
+                 gatk_haplotypecaller(coord_sort_cram.out.markdup_sample_cram_crai)
+                 }
+              else {
+                 if (params.tsv_file) {
+                     deepvariant(cram_file)
+                     gatk_haplotypecaller(cram_file)}
+                 else {
+                     deepvariant(iget_study_cram.out.study_sample_cram_crai)
+                     gatk_haplotypecaller(iget_study_cram.out.study_sample_cram_crai)}
+              }  
      emit:
         my_data = deepvariant.out
         
