@@ -11,7 +11,7 @@ process gatk_haplotypecaller {
     //time '100m'
     //queue 'normal'
     clusterOptions = { "-M 8000 -R \"select[mem>=8000] rusage[mem=8000]\" -R \"select[model==Intel_Platinum]\"" }
-    container  = 'file:///software/hgi/containers/gatk_4.2.2.0.sif'
+    container  = 'file:///software/hgi/containers/gatk_4.2.4.0.sif'
     containerOptions = "--bind /lustre --bind ${params.ref_dir}:/ref --bind ${params.bed_dir}:/bed_files --bind /tmp:/tmp"
     // errorStrategy 'terminate'
     errorStrategy { (task.attempt <= maxRetries)  ? 'retry' : 'ignore' }
