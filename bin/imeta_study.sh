@@ -8,6 +8,7 @@ printf 'sample\tobject\tsample_supplier_name\tid_run\tis_paired_read\tstudy_id\t
 jq --arg study_id $study_id -n '{avus: [
        {attribute: "study_id", value: $study_id, o: "="}, 
        {attribute: "manual_qc", value: "1", o: "="}, 
+       {attribute: "id_run", value: "32441", o: ">"}, 
       {attribute: "target", value: "1", o: "="}]}' |\
 baton-metaquery \
 		--zone seq --obj --avu |\
