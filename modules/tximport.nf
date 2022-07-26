@@ -23,6 +23,6 @@ process tximport {
     """
     ls . | grep .quant.sf\$ > fofn_quantfiles.txt
 
-    Rscript $workflow.projectDir/../bin/tximport.R \"${params.salmon_aligner.salmon_downstream_tasks.tximport_task.ensembl_lib}\" fofn_quantfiles.txt 
+    /software/hgi/installs/anaconda3/envs/hgi_base/bin/Rscript $workflow.projectDir/../bin/tximport.R \"${params.salmon_aligner.salmon_downstream_tasks.tximport_task.ensembl_lib}\" fofn_quantfiles.txt 
     """
 }
