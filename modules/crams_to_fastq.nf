@@ -19,7 +19,7 @@ process crams_to_fastq_gz {
         // def avail_mem = task.memory == null ? '' : "${ sprintf "%.0f", 0.7 * ( task.memory.toBytes() - 2000000000 ) / task.cpus}"
     def cramfile = "${samplename}_merged.cram"
     """
-    export REF_PATH=/lustre/scratch117/core/sciops_repository/cram_cache/%2s/%2s/%s:/lustre/scratch118/core/sciops_repository/cram_cache/%2s/%2s/%s:URL=http:://sf2-farm-srv1.internal.sanger.ac.uk::8000/%s
+    export REF_PATH=/lustre/scratch117/core/sciops_repository/cram_cache/%2s/%2s/%s:/lustre/scratch125/core/sciops_repository/cram_cache/%2s/%2s/%s:URL=http:://sf2-farm-srv1.internal.sanger.ac.uk::8000/%s
 
     samtools merge -@ ${task.cpus} -f $cramfile ${crams}
 
@@ -50,4 +50,4 @@ process crams_to_fastq_gz {
     """
 }
 
-// export REF_CACHE=/lustre/scratch117/core/sciops_repository/cram_cache/%2s/%2s/%s:/lustre/scratch118/core/sciops_repository/cram_cache/%2s/%2s/%s
+// export REF_CACHE=/lustre/scratch117/core/sciops_repository/cram_cache/%2s/%2s/%s:/lustre/scratch125/core/sciops_repository/cram_cache/%2s/%2s/%s

@@ -1,7 +1,7 @@
 #!/bin/bash
 #  b build_star_index_2.7.8a.sh 12 20 normal
 star_version=2.7.8a
-singularity_cache=/lustre/scratch118/humgen/resources/containers
+singularity_cache=/lustre/scratch125/humgen/resources/containers
 # from https://github.com/wtsi-hgi/nextflow_rna_seq_container : 
 image=rna_seq_1.0.img
 

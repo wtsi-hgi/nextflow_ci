@@ -1,6 +1,6 @@
 #!/bin/bash
 eval "$(conda shell.bash hook)"
-conda activate /lustre/scratch118/humgen/resources/conda/star
+conda activate /lustre/scratch125/humgen/resources/conda/star
 
 mkdir star_index_Homo_sapiens.GRCh38.99_75bp
 STAR \
