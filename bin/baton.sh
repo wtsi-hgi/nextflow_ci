@@ -22,7 +22,7 @@ jq '.[] as $a|
     sed s"/$(printf '\t')//"g |\
     sed s"/\"//"g |\
     sed s"/____/$(printf '\t')/"g |\
-sort | uniq >> samples.tsv
+sort | uniq | grep -v 32441 >> samples.tsv
 
 #singularity exec /software/hgi/containers/singularity-baton/baton.simg baton-metaquery \
 
